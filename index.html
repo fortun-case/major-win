@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Major Win | Premium Case Battle</title>
+    <title>Major Win | Minimalist</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -12,98 +12,92 @@
 <body>
 
     <div class="live-feed">
-        <div id="live-drop-line" class="feed-track">
-            </div>
+        <div id="live-drop-line" class="feed-track"></div>
     </div>
 
-    <header class="main-header">
-        <div class="logo">MAJOR <span class="accent">WIN</span></div>
-        
+    <header class="header">
+        <div class="logo">MAJOR<span class="accent">WIN</span></div>
         <div id="auth-section">
-            <button id="login-btn" class="btn-login">ВОЙТИ ЧЕРЕЗ GOOGLE</button>
-            <div id="user-controls" class="user-info" style="display:none;">
-                <div class="balance-card">
-                    <span class="label">БАЛАНС</span>
-                    <span class="value"><span id="balance-amount">0</span>$</span>
-                </div>
-                <button id="profile-open-btn" class="btn-circle-profile">
-                    <img src="https://img.icons8.com/ios-glyphs/30/ffffff/user--v1.png" alt="Profile">
-                </button>
+            <button id="login-btn" class="btn-outline">ВОЙТИ</button>
+            <div id="user-controls" class="user-panel" style="display:none;">
+                <div class="balance-display"><span id="balance-amount">0</span> $</div>
+                <button id="profile-open-btn" class="btn-text">ПРОФИЛЬ</button>
             </div>
         </div>
     </header>
 
-    <nav class="main-nav">
-        <button onclick="showSection('cases')" class="nav-item active">КЕЙСЫ</button>
-        <button onclick="showSection('contracts')" class="nav-item">КОНТРАКТЫ</button>
-        <button onclick="showSection('upgrades')" class="nav-item">АПГРЕЙДЫ</button>
+    <nav class="nav-menu">
+        <button onclick="switchTab('cases')" class="nav-link active" id="tab-cases">КЕЙСЫ</button>
+        <button onclick="switchTab('contracts')" class="nav-link" id="tab-contracts">КОНТРАКТЫ</button>
+        <button onclick="switchTab('upgrades')" class="nav-link" id="tab-upgrades">АПГРЕЙДЫ</button>
     </nav>
 
-    <main class="content-area">
-        <section id="cases-section" class="tab-content">
-            <div class="roulette-container">
-                <div class="roulette-viewport">
-                    <div class="marker"></div>
+    <main class="content">
+        <section id="cases-section" class="tab-pane active-pane">
+            <div class="roulette-box">
+                <div class="roulette-window">
+                    <div class="roulette-marker"></div>
                     <div id="roulette-line" class="roulette-track"></div>
                 </div>
-                <div class="win-display">
-                    <h3 id="item-name">ГОТОВ К ОТКРЫТИЮ?</h3>
-                    <p id="item-rarity-text">Цена кейса: 50$</p>
+                <div class="roulette-info">
+                    <h2 id="item-name" class="item-name">КЕЙС "КЛАССИКА"</h2>
+                    <p class="item-price">Стоимость: 50$</p>
                 </div>
-                <button id="open-btn" class="btn-glow">ОТКРЫТЬ КЕЙС</button>
+                <button id="open-btn" class="btn-primary">ОТКРЫТЬ</button>
             </div>
         </section>
 
-        <section id="contracts-section" class="tab-content" style="display:none;">
-            <div class="contract-container">
-                <h2>Создать контракт</h2>
-                <div id="contract-slots" class="slots-grid">
-                    </div>
-                <button id="exchange-btn" class="btn-glow">ЗАПУСТИТЬ ОБМЕН</button>
+        <section id="contracts-section" class="tab-pane">
+            <div class="module-box">
+                <h2>КОНТРАКТ ОБМЕНА</h2>
+                <p class="sub-text">Выберите 3 предмета из инвентаря</p>
+                <div id="contract-slots" class="contract-grid">
+                    <div class="slot empty"></div>
+                    <div class="slot empty"></div>
+                    <div class="slot empty"></div>
+                </div>
+                <button id="exchange-btn" class="btn-primary" disabled>ОБМЕНЯТЬ</button>
+                <div id="contract-inventory" class="inventory-grid mt-20"></div>
             </div>
         </section>
 
-        <section id="upgrades-section" class="tab-content" style="display:none;">
-            <div class="upgrade-container">
-                <div class="upgrade-grid">
-                    <div id="selected-upgrade-item" class="upgrade-slot empty">ВАШ СКИН</div>
-                    <div class="upgrade-info">
-                        <div id="chance-circle" class="chance-val">0%</div>
-                        <button id="upgrade-start-btn" class="btn-upgrade">UPGRADE</button>
-                    </div>
-                    <div id="target-upgrade-item" class="upgrade-slot target">ЦЕЛЬ</div>
+        <section id="upgrades-section" class="tab-pane">
+            <div class="module-box">
+                <h2>АПГРЕЙД</h2>
+                <p class="sub-text">Выберите предмет для улучшения (шанс x2 стоимости)</p>
+                <div class="upgrade-layout">
+                    <div id="upg-slot-from" class="slot empty">ВАШ СКИН</div>
+                    <div class="upg-chance" id="upg-chance-display">50%</div>
+                    <div id="upg-slot-to" class="slot empty target">ЦЕЛЬ</div>
                 </div>
+                <button id="upgrade-btn" class="btn-primary" disabled>УЛУЧШИТЬ</button>
+                <div id="upgrade-inventory" class="inventory-grid mt-20"></div>
             </div>
         </section>
     </main>
 
-    <div id="profile-modal" class="modal-overlay">
-        <div class="modal-card">
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
             <div class="modal-header">
-                <h2 id="display-nickname">Профиль</h2>
-                <span class="close-btn" id="close-profile">&times;</span>
+                <h2 id="display-nickname">Загрузка...</h2>
+                <button id="close-profile" class="btn-icon">&times;</button>
             </div>
             
-            <div class="profile-stats">
-                <div class="lvl-box">
-                    <span>Уровень <b id="user-level">1</b></span>
-                    <div class="progress-bg"><div id="xp-bar-fill"></div></div>
-                </div>
+            <div class="level-bar-container">
+                <div class="level-info">LVL <span id="user-level">1</span></div>
+                <div class="progress-track"><div id="xp-bar-fill" class="progress-fill"></div></div>
             </div>
 
-            <div class="profile-actions">
-                <div class="input-group">
-                    <input type="text" id="nickname-input" placeholder="Сменить ник">
-                    <button id="save-nickname-btn">OK</button>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="promo-input" placeholder="Промокод">
-                    <button id="apply-promo-btn">ВВОД</button>
-                </div>
+            <div class="settings-grid">
+                <input type="text" id="nickname-input" class="input-dark" placeholder="Новый ник">
+                <button id="save-nickname-btn" class="btn-outline">СМЕНИТЬ</button>
+                
+                <input type="text" id="promo-input" class="input-dark" placeholder="Промокод">
+                <button id="apply-promo-btn" class="btn-outline">ВВОД</button>
             </div>
 
-            <h3>Ваш инвентарь</h3>
-            <div id="inventory-list" class="inventory-scroll"></div>
+            <h3 class="mt-20">ИНВЕНТАРЬ</h3>
+            <div id="main-inventory" class="inventory-grid"></div>
         </div>
     </div>
 
