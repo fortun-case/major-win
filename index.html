@@ -3,135 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Major Win | Case Battle Edition</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <title>CASE-STATION | Элитные кейсы</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0b0e14; color: white; }
+        .case-gradient { background: radial-gradient(circle, rgba(234,179,8,0.15) 0%, rgba(11,14,20,1) 70%); }
+    </style>
 </head>
 <body>
+    <div id="root"></div>
 
-    <div class="app-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header"><span class="pulse"></span> LIVE DROP</div>
-            <div id="live-feed" class="live-feed-list"></div>
-        </aside>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { motion, AnimatePresence } = FramerMotion;
 
-        <main class="main-content">
-            <header class="top-header">
-                <div class="logo-area"><h1>MAJOR <span class="accent">WIN</span></h1></div>
-                <nav class="top-nav">
-                    <button class="nav-btn active" id="btn-nav-cases" onclick="switchTab('cases')">КЕЙСЫ</button>
-                    <button class="nav-btn" id="btn-nav-upgrades" onclick="switchTab('upgrades')">АПГРЕЙД</button>
-                    <button class="nav-btn" id="btn-nav-contracts" onclick="switchTab('contracts')">КОНТРАКТЫ</button>
-                </nav>
-                <div class="user-area">
-                    <button id="auth-btn" class="btn-steam">ВОЙТИ</button>
-                    <div id="user-panel" class="user-panel" style="display: none;">
-                        <div class="balance-box"><span id="balance-amount">0</span> ₽</div>
-                        <button class="profile-link" onclick="switchTab('profile')">ПРОФИЛЬ</button>
-                    </div>
+        // --- ИНИЦИАЛИЗАЦИЯ FIREBASE (Модульный SDK через CDN) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "ВАШ_API_KEY",
+            authDomain: "ВАШ_PROJECT.firebaseapp.com",
+            projectId: "ВАШ_PROJECT_ID",
+            storageBucket: "ВАШ_PROJECT.appspot.com",
+            messagingSenderId: "ВАШ_ID",
+            appId: "ВАШ_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        // Данные предметов
+        const ITEMS = [
+            { id: 1, name: "M4A4 | Howl", price: 1200, rarity: "Legendary", color: "from-red-600" },
+            { id: 2, name: "USP-S | Kill Confirmed", price: 300, rarity: "Covert", color: "from-pink-600" },
+            { id: 3, name: "Glock-18 | Water Elemental", price: 50, rarity: "Classified", color: "from-purple-600" },
+            { id: 4, name: "P250 | Sand Dune", price: 2, rarity: "Consumer", color: "from-gray-500" }
+        ];
+
+        function App() {
+            const [user, setUser] = useState(null);
+            const [profile, setProfile] = useState({ balance: 0, inventory: [], nickname: "" });
+            const [isSpinning, setIsSpinning] = useState(false);
+            const [winItem, setWinItem] = useState(null);
+
+            useEffect(() => {
+                return onAuthStateChanged(auth, async (u) => {
+                    if (u) {
+                        setUser(u);
+                        const docRef = doc(db, "users", u.uid);
+                        const snap = await getDoc(docRef);
+                        if (snap.exists()) {
+                            setProfile(snap.data());
+                        } else {
+                            const newP = { balance: 5000, inventory: [], nickname: u.displayName };
+                            await setDoc(docRef, newP);
+                            setProfile(newP);
+                        }
+                    } else { setUser(null); }
+                });
+            }, []);
+
+            const handleLogin = () => signInWithPopup(auth, provider);
+
+            const openCase = async () => {
+                if (profile.balance < 250 || isSpinning) return;
+                setIsSpinning(true);
+                
+                const drop = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+                const newBalance = profile.balance - 250;
+
+                setTimeout(async () => {
+                    const docRef = doc(db, "users", user.uid);
+                    await updateDoc(docRef, {
+                        balance: newBalance,
+                        inventory: arrayUnion({ ...drop, instId: Date.now() })
+                    });
+                    setProfile(prev => ({ ...prev, balance: newBalance, inventory: [...prev.inventory, drop] }));
+                    setWinItem(drop);
+                    setIsSpinning(false);
+                }, 2000);
+            };
+
+            if (!user) return (
+                <div className="h-screen flex flex-col items-center justify-center space-y-6">
+                    <h1 className="text-5xl font-black text-yellow-500 tracking-tighter">CASE-STATION</h1>
+                    <button onClick={handleLogin} className="bg-white text-black px-10 py-4 rounded-full font-bold hover:scale-105 transition">
+                        Войти через Google
+                    </button>
                 </div>
-            </header>
+            );
 
-            <div class="scrollable-content">
-                <section id="cases-section" class="tab-content active-tab">
-                    <div class="promo-banner">
-                        <div class="promo-text">
-                            <h3>НОВЫЙ ДОМЕН</h3>
-                            <p>Мы переехали! Все скины и баланс сохранены.</p>
-                        </div>
-                    </div>
-                    <div class="section-title">СЕРИЙНЫЕ КЕЙСЫ</div>
-                    <div class="cases-grid">
-                        <div class="case-card" onclick="openCaseModal(0)">
-                            <div class="case-image">📦</div>
-                            <div class="case-name">Новичок</div>
-                            <div class="case-price">50 ₽</div>
-                        </div>
-                        <div class="case-card" onclick="openCaseModal(1)">
-                            <div class="case-image">🔥</div>
-                            <div class="case-name">Армейский</div>
-                            <div class="case-price">150 ₽</div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="upgrades-section" class="tab-content">
-                    <div class="upgrade-container">
-                        <h2 class="mod-title">МОДЕРНИЗАЦИЯ ОРУЖИЯ 2.0</h2>
-                        <div class="upgrade-main-area">
-                            <div class="upg-card-slot" id="slot-source">
-                                <div class="empty-slot-text">ВЫБЕРИТЕ СКИН В ПРОФИЛЕ</div>
+            return (
+                <div className="max-w-6xl mx-auto p-6">
+                    {/* Header */}
+                    <header className="flex justify-between items-center border-b border-gray-800 pb-6">
+                        <div className="text-2xl font-black text-yellow-500">CS</div>
+                        <div className="flex items-center gap-6">
+                            <div className="bg-gray-900 px-4 py-2 rounded-lg border border-gray-700">
+                                <span className="text-gray-400 text-sm">Баланс:</span>
+                                <span className="ml-2 font-bold text-green-400">{profile.balance} $</span>
                             </div>
-
-                            <div class="upg-chance-module">
-                                <svg class="progress-ring" width="240" height="240">
-                                    <circle class="progress-ring__background" stroke="#2a2c3d" stroke-width="12" fill="transparent" r="100" cx="120" cy="120"/>
-                                    <circle id="upg-progress" class="progress-ring__circle" stroke="url(#grad1)" stroke-width="12" stroke-dasharray="628.3" stroke-dashoffset="628.3" stroke-linecap="round" fill="transparent" r="100" cx="120" cy="120"/>
-                                    <defs>
-                                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" style="stop-color:#7b61ff;" />
-                                            <stop offset="100%" style="stop-color:#ffca2d;" />
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                                <div id="upg-arrow" class="upg-arrow"></div>
-                                <div class="chance-display">
-                                    <div class="chance-value" id="current-chance">0%</div>
-                                    <div class="chance-label">ШАНС</div>
-                                </div>
-                            </div>
-
-                            <div class="upg-card-slot" id="slot-target">
-                                <div class="empty-slot-text">ЦЕЛЬ</div>
-                            </div>
+                            <button onClick={() => signOut(auth)} className="text-gray-500 hover:text-white transition">Выход</button>
                         </div>
-                        <button class="btn-upgrade-start" id="start-upgrade-btn" disabled>ПРОКАЧАТЬ</button>
-                        <div class="target-selection-title">ВЫБЕРИТЕ ЦЕЛЬ АПГРЕЙДА</div>
-                        <div class="target-selection-grid" id="upgrade-targets"></div>
-                    </div>
-                </section>
+                    </header>
 
-                <section id="profile-section" class="tab-content">
-                    <div class="profile-layout">
-                        <div class="profile-sidebar">
-                            <div class="profile-avatar-box">👤</div>
-                            <div class="input-block">
-                                <label>НИКНЕЙМ</label>
-                                <input type="text" id="input-nickname" placeholder="Ваш ник...">
-                                <button class="btn-profile-action" onclick="updateNickname()">ИЗМЕНИТЬ</button>
-                            </div>
-                            <div class="input-block">
-                                <label>ПРОМОКОД</label>
-                                <input type="text" id="input-promo" placeholder="Введите код...">
-                                <button class="btn-profile-action" onclick="applyPromo()">ОК</button>
-                            </div>
+                    {/* Case Area */}
+                    <section className="mt-12 py-20 rounded-3xl case-gradient border border-yellow-500/10 text-center">
+                        <motion.div 
+                            animate={isSpinning ? { rotate: [0, -10, 10, -10, 10, 0], scale: [1, 1.1, 1] } : {}}
+                            transition={{ duration: 0.5, repeat: isSpinning ? Infinity : 0 }}
+                            className="text-9xl mb-12 inline-block drop-shadow-[0_0_35px_rgba(234,179,8,0.5)]"
+                        >
+                            📦
+                        </motion.div>
+                        <br/>
+                        <button 
+                            onClick={openCase}
+                            disabled={isSpinning}
+                            className="bg-yellow-500 text-black px-16 py-5 rounded-2xl font-black text-2xl hover:bg-yellow-400 disabled:opacity-50 shadow-lg shadow-yellow-500/20"
+                        >
+                            {isSpinning ? "ОТКРЫВАЕМ..." : "ОТКРЫТЬ ЗА 250 $"}
+                        </button>
+                    </section>
+
+                    {/* Inventory */}
+                    <section className="mt-16">
+                        <h2 className="text-xl font-bold mb-8 uppercase tracking-widest text-gray-400">Твой инвентарь</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                            {profile.inventory.slice().reverse().map((item, i) => (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                                    key={i} className="bg-gray-900 p-4 rounded-xl border border-gray-800 group relative overflow-hidden"
+                                >
+                                    <div className={`h-1 w-full bg-gradient-to-r ${item.color} to-transparent absolute top-0 left-0`} />
+                                    <p className="text-xs text-gray-500 mb-1">{item.rarity}</p>
+                                    <p className="font-bold text-sm truncate">{item.name}</p>
+                                    <p className="text-green-500 font-bold mt-2">{item.price} $</p>
+                                </motion.div>
+                            ))}
                         </div>
-                        <div class="profile-main">
-                            <div class="profile-header-info">
-                                <h2>ВАШ ИНВЕНТАРЬ</h2>
-                                <div class="p-stats">Баланс: <span id="p-balance">0</span> ₽</div>
+                    </section>
+
+                    {/* Win Modal */}
+                    <AnimatePresence>
+                        {winItem && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90">
+                                <motion.div 
+                                    initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                                    className={`bg-gradient-to-br ${winItem.color} to-black p-1 rounded-2xl w-full max-w-sm`}
+                                >
+                                    <div className="bg-[#0b0e14] rounded-2xl p-8 text-center">
+                                        <p className="text-yellow-500 font-bold uppercase tracking-tighter mb-2">Вы выиграли!</p>
+                                        <h3 className="text-3xl font-black mb-6">{winItem.name}</h3>
+                                        <button 
+                                            onClick={() => setWinItem(null)}
+                                            className="w-full bg-white text-black py-3 rounded-xl font-bold"
+                                        >
+                                            ЗАБРАТЬ
+                                        </button>
+                                    </div>
+                                </motion.div>
                             </div>
-                            <div id="profile-inventory-list" class="inventory-grid"></div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </main>
-    </div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        }
 
-    <div id="case-modal" class="modal">
-        <div class="modal-box">
-            <button class="close-btn" onclick="closeModal()">×</button>
-            <div class="roulette-wrapper">
-                <div class="roulette-marker"></div>
-                <div id="roulette-line" class="roulette-line"></div>
-            </div>
-            <button class="btn-upgrade-start" id="btn-spin" style="margin: 20px auto; display: block;">ОТКРЫТЬ</button>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
