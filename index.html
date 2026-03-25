@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Major Win - Case Battle</title>
+    <title>Major Win | Case Battle Edition</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -13,117 +13,122 @@
 
     <div class="app-layout">
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <span class="pulse"></span> LIVE ЛЕНТА
-            </div>
-            <div id="live-feed" class="live-feed-list">
-                </div>
+            <div class="sidebar-header"><span class="pulse"></span> LIVE DROP</div>
+            <div id="live-feed" class="live-feed-list"></div>
         </aside>
 
         <main class="main-content">
             <header class="top-header">
-                <div class="logo-area">
-                    <h1>MAJOR <span class="accent">WIN</span></h1>
-                </div>
-                
+                <div class="logo-area"><h1>MAJOR <span class="accent">WIN</span></h1></div>
                 <nav class="top-nav">
-                    <button class="nav-btn active" onclick="switchTab('cases')">КЕЙСЫ</button>
-                    <button class="nav-btn" onclick="switchTab('upgrades')">АПГРЕЙД</button>
-                    <button class="nav-btn" onclick="switchTab('contracts')">КОНТРАКТЫ</button>
+                    <button class="nav-btn active" id="btn-nav-cases" onclick="switchTab('cases')">КЕЙСЫ</button>
+                    <button class="nav-btn" id="btn-nav-upgrades" onclick="switchTab('upgrades')">АПГРЕЙД</button>
+                    <button class="nav-btn" id="btn-nav-contracts" onclick="switchTab('contracts')">КОНТРАКТЫ</button>
                 </nav>
-
                 <div class="user-area">
-                    <button id="auth-btn" class="btn-steam">ВОЙТИ ЧЕРЕЗ GOOGLE</button>
+                    <button id="auth-btn" class="btn-steam">ВОЙТИ</button>
                     <div id="user-panel" class="user-panel" style="display: none;">
-                        <div class="balance-box">
-                            <span id="balance-amount">0</span> <span class="currency">₽</span>
-                        </div>
-                        <button class="profile-avatar" onclick="document.getElementById('profile-modal').style.display='flex'">
-                            ПРОФИЛЬ
-                        </button>
+                        <div class="balance-box"><span id="balance-amount">0</span> ₽</div>
+                        <button class="profile-link" onclick="switchTab('profile')">ПРОФИЛЬ</button>
                     </div>
                 </div>
             </header>
 
             <div class="scrollable-content">
-                
                 <section id="cases-section" class="tab-content active-tab">
                     <div class="promo-banner">
                         <div class="promo-text">
                             <h3>НОВЫЙ ДОМЕН</h3>
-                            <p>У нас сменилось доменное имя, теперь мы тут!</p>
+                            <p>Мы переехали! Все скины и баланс сохранены.</p>
                         </div>
                     </div>
-
                     <div class="section-title">СЕРИЙНЫЕ КЕЙСЫ</div>
-                    
                     <div class="cases-grid">
-                        <div class="case-card" onclick="openCaseModal()">
+                        <div class="case-card" onclick="openCaseModal(0)">
                             <div class="case-image">📦</div>
-                            <div class="case-name">Классический</div>
+                            <div class="case-name">Новичок</div>
                             <div class="case-price">50 ₽</div>
                         </div>
-                        <div class="case-card" onclick="openCaseModal()">
-                            <div class="case-image">💎</div>
-                            <div class="case-name">Премиум</div>
-                            <div class="case-price">250 ₽</div>
+                        <div class="case-card" onclick="openCaseModal(1)">
+                            <div class="case-image">🔥</div>
+                            <div class="case-name">Армейский</div>
+                            <div class="case-price">150 ₽</div>
                         </div>
                     </div>
                 </section>
 
                 <section id="upgrades-section" class="tab-content">
-                    <div class="module-container">
-                        <h2>АПГРЕЙД ПРЕДМЕТОВ</h2>
-                        <div class="upgrade-arena">
-                            <div class="upg-slot" id="upg-from">ВЫБЕРИТЕ СКИН ИЗ ИНВЕНТАРЯ</div>
-                            <div class="upg-center">
-                                <div class="chance-circle" id="upg-chance">50%</div>
-                                <button class="btn-action" id="btn-do-upgrade">АПГРЕЙД</button>
+                    <div class="upgrade-container">
+                        <h2 class="mod-title">МОДЕРНИЗАЦИЯ ОРУЖИЯ 2.0</h2>
+                        <div class="upgrade-main-area">
+                            <div class="upg-card-slot" id="slot-source">
+                                <div class="empty-slot-text">ВЫБЕРИТЕ СКИН В ПРОФИЛЕ</div>
                             </div>
-                            <div class="upg-slot target" id="upg-to">ЦЕЛЬ</div>
+
+                            <div class="upg-chance-module">
+                                <svg class="progress-ring" width="240" height="240">
+                                    <circle class="progress-ring__background" stroke="#2a2c3d" stroke-width="12" fill="transparent" r="100" cx="120" cy="120"/>
+                                    <circle id="upg-progress" class="progress-ring__circle" stroke="url(#grad1)" stroke-width="12" stroke-dasharray="628.3" stroke-dashoffset="628.3" stroke-linecap="round" fill="transparent" r="100" cx="120" cy="120"/>
+                                    <defs>
+                                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" style="stop-color:#7b61ff;" />
+                                            <stop offset="100%" style="stop-color:#ffca2d;" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div id="upg-arrow" class="upg-arrow"></div>
+                                <div class="chance-display">
+                                    <div class="chance-value" id="current-chance">0%</div>
+                                    <div class="chance-label">ШАНС</div>
+                                </div>
+                            </div>
+
+                            <div class="upg-card-slot" id="slot-target">
+                                <div class="empty-slot-text">ЦЕЛЬ</div>
+                            </div>
                         </div>
-                        <div class="inv-title">ВАШ ИНВЕНТАРЬ</div>
-                        <div id="upgrade-inv" class="inventory-grid"></div>
+                        <button class="btn-upgrade-start" id="start-upgrade-btn" disabled>ПРОКАЧАТЬ</button>
+                        <div class="target-selection-title">ВЫБЕРИТЕ ЦЕЛЬ АПГРЕЙДА</div>
+                        <div class="target-selection-grid" id="upgrade-targets"></div>
                     </div>
                 </section>
 
-                <section id="contracts-section" class="tab-content">
-                    <div class="module-container">
-                        <h2>КОНТРАКТЫ ОБМЕНА</h2>
-                        <div class="contract-slots" id="contract-slots">
-                            <div class="c-slot"></div><div class="c-slot"></div><div class="c-slot"></div>
+                <section id="profile-section" class="tab-content">
+                    <div class="profile-layout">
+                        <div class="profile-sidebar">
+                            <div class="profile-avatar-box">👤</div>
+                            <div class="input-block">
+                                <label>НИКНЕЙМ</label>
+                                <input type="text" id="input-nickname" placeholder="Ваш ник...">
+                                <button class="btn-profile-action" onclick="updateNickname()">ИЗМЕНИТЬ</button>
+                            </div>
+                            <div class="input-block">
+                                <label>ПРОМОКОД</label>
+                                <input type="text" id="input-promo" placeholder="Введите код...">
+                                <button class="btn-profile-action" onclick="applyPromo()">ОК</button>
+                            </div>
                         </div>
-                        <button class="btn-action" id="btn-do-contract" disabled>СОЗДАТЬ КОНТРАКТ</button>
-                        <div class="inv-title">ВЫБЕРИТЕ 3 ПРЕДМЕТА</div>
-                        <div id="contract-inv" class="inventory-grid"></div>
+                        <div class="profile-main">
+                            <div class="profile-header-info">
+                                <h2>ВАШ ИНВЕНТАРЬ</h2>
+                                <div class="p-stats">Баланс: <span id="p-balance">0</span> ₽</div>
+                            </div>
+                            <div id="profile-inventory-list" class="inventory-grid"></div>
+                        </div>
                     </div>
                 </section>
-
             </div>
         </main>
     </div>
 
     <div id="case-modal" class="modal">
         <div class="modal-box">
-            <button class="close-btn" onclick="document.getElementById('case-modal').style.display='none'">×</button>
-            <h2 style="text-align: center;">ОТКРЫТИЕ КЕЙСА</h2>
+            <button class="close-btn" onclick="closeModal()">×</button>
             <div class="roulette-wrapper">
                 <div class="roulette-marker"></div>
                 <div id="roulette-line" class="roulette-line"></div>
             </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-action" id="btn-spin">ОТКРЫТЬ (50 ₽)</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="profile-modal" class="modal">
-        <div class="modal-box">
-            <button class="close-btn" onclick="document.getElementById('profile-modal').style.display='none'">×</button>
-            <h2>ПРОФИЛЬ</h2>
-            <p>Никнейм: <strong id="profile-nick">Игрок</strong></p>
-            <div class="inv-title" style="margin-top: 20px;">ИНВЕНТАРЬ (МОЖНО ПРОДАТЬ)</div>
-            <div id="main-inv" class="inventory-grid"></div>
+            <button class="btn-upgrade-start" id="btn-spin" style="margin: 20px auto; display: block;">ОТКРЫТЬ</button>
         </div>
     </div>
 
