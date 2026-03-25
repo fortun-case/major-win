@@ -3,41 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Major Win — Case Simulator</title>
+    <title>Major Win — Case Battle Clone</title>
     <link rel="stylesheet" href="style.css">
-    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
+    <div class="live-drop-container">
+        <div id="live-drop-line" class="live-drop-line"></div>
+    </div>
+
     <div class="header">
         <h1>MAJOR <span class="gold">WIN</span></h1>
         <div id="auth-section">
             <button id="login-btn">Войти через Google</button>
-            <div id="user-info" style="display:none;">
-                <span id="user-email"></span> | 
+            <div id="user-controls" style="display:none;">
                 <span class="gold">Баланс: <span id="balance-amount">0</span>$</span>
+                <button id="profile-open-btn" class="btn-profile">ПРОФИЛЬ</button>
             </div>
         </div>
     </div>
 
-    <div class="container">
+    <div class="nav-menu">
+        <button onclick="showSection('cases')">КЕЙСЫ</button>
+        <button onclick="showSection('contracts')">КОНТРАКТЫ</button>
+        <button onclick="showSection('upgrades')">АПГРЕЙДЫ</button>
+    </div>
+
+    <div id="cases-section" class="section">
         <div class="case-card">
-            <div class="item-visual">
-                <div id="rarity-glow"></div>
-                <img src="https://via.placeholder.com/200x150/111/ffca2d?text=Major+Win" id="item-img">
+            <div class="roulette-wrapper">
+                <div class="selector"></div>
+                <div id="roulette-line" class="roulette-line"></div>
             </div>
-            <h2 id="item-name">Удачи, боец!</h2>
-            <p id="item-rarity-text">Нажми "Открыть", чтобы начать</p>
+            <div class="win-info">
+                <h2 id="item-name">Удачи!</h2>
+                <p id="item-rarity-text">Нажми "Открыть"</p>
+            </div>
             <button id="open-btn" class="btn-main">ОТКРЫТЬ КЕЙС (50$)</button>
         </div>
+    </div>
 
-        <div class="inventory-section">
-            <h3>ВАШ ИНВЕНТАРЬ</h3>
-            <div id="inventory-list" class="inventory-grid">
+    <div id="contracts-section" class="section" style="display:none;">
+        <div class="contract-box">
+            <h2>Контракты</h2>
+            <p>Выберите 3 скина для обмена на 1 более дорогой</p>
+            <div id="contract-slots" class="contract-slots"></div>
+            <button id="exchange-btn" class="btn-main">ПОДПИСАТЬ КОНТРАКТ</button>
+        </div>
+    </div>
+
+    <div id="upgrades-section" class="section" style="display:none;">
+        <div class="upgrade-box">
+            <h2>Апгрейд</h2>
+            <div class="upgrade-container">
+                <div id="selected-upgrade-item" class="upgrade-slot">Ваш скин</div>
+                <div class="chance-display">
+                    <div id="chance-circle" class="circle">0%</div>
                 </div>
+                <div id="target-upgrade-item" class="upgrade-slot">Цель: Нож</div>
+            </div>
+            <button id="upgrade-start-btn" class="btn-main">УЛУЧШИТЬ</button>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeProfile()">&times;</span>
+            <h2 id="display-nickname">Загрузка...</h2>
+            <div class="level-system">
+                <span>LVL: <b id="user-level">1</b></span>
+                <div class="xp-bar-bg"><div id="xp-bar-fill"></div></div>
+            </div>
+            <div class="nickname-section">
+                <input type="text" id="nickname-input" placeholder="Новый ник">
+                <button id="save-nickname-btn">OK</button>
+            </div>
+            <div class="promo-section">
+                <input type="text" id="promo-input" placeholder="Промокод">
+                <button id="apply-promo-btn">ВВОД</button>
+            </div>
+            <h3>Инвентарь</h3>
+            <div id="inventory-list" class="inventory-grid"></div>
         </div>
     </div>
 
