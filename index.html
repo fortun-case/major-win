@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAJOR WIN | Roulette Edition</title>
+    <title>MAJOR WIN | Case Battle</title>
     
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap');
-        body { background: #0b0e14; color: #ced4da; font-family: 'Exo 2', sans-serif; margin: 0; overflow-x: hidden; }
+        body { background: #0b0e14; color: #ced4da; font-family: 'Exo 2', sans-serif; margin: 0; }
         
-        /* Стили редкости */
         .rarity-Gold { border-bottom: 3px solid #eab308; }
         .rarity-Red { border-bottom: 3px solid #eb4b4b; }
         .rarity-Pink { border-bottom: 3px solid #d32ee6; }
@@ -26,44 +26,22 @@
 
         /* РУЛЕТКА */
         .roulette-container {
-            width: 100%;
-            height: 160px;
-            background: #12161e;
-            position: relative;
-            overflow: hidden;
-            border: 2px solid #1c212b;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
+            width: 100%; height: 160px; background: #12161e;
+            position: relative; overflow: hidden; border: 2px solid #1c212b;
+            border-radius: 20px; display: flex; align-items: center;
         }
         .roulette-line {
-            position: absolute;
-            left: 50%;
-            width: 2px;
-            height: 100%;
-            background: #f8b400;
-            z-index: 10;
-            box-shadow: 0 0 15px #f8b400;
+            position: absolute; left: 50%; width: 2px; height: 100%;
+            background: #f8b400; z-index: 10; box-shadow: 0 0 15px #f8b400;
         }
-        .roulette-tape {
-            display: flex;
-            transition: transform 5s cubic-bezier(0.15, 0, 0.05, 1);
-            will-change: transform;
-        }
+        .roulette-tape { display: flex; transition: transform 5s cubic-bezier(0.15, 0, 0.05, 1); }
         .roulette-item {
-            min-width: 140px;
-            height: 130px;
-            margin: 0 5px;
-            background: #0b0e14;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            border-bottom: 3px solid transparent;
+            min-width: 140px; height: 130px; margin: 0 5px;
+            background: #0b0e14; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; border-radius: 10px;
         }
 
-        .main-wrapper { margin-left: 70px; }
+        .main-wrapper { margin-left: 70px; min-height: 100vh; }
         .cb-sidebar { width: 70px; background: #12161e; border-right: 1px solid #1c212b; height: 100vh; position: fixed; left: 0; top: 0; z-index: 50; }
         .xp-bar { height: 4px; background: #1c212b; border-radius: 2px; overflow: hidden; }
         .xp-progress { height: 100%; background: #f8b400; transition: width 0.5s ease; }
@@ -94,8 +72,8 @@
             { id: 2, name: "AWP | Dragon Lore", price: 8500, rarity: "Gold", icon: "🔫" },
             { id: 3, name: "AK-47 | Fire Serpent", price: 1400, rarity: "Red", icon: "🔫" },
             { id: 4, name: "M4A4 | Howl", price: 4200, rarity: "Red", icon: "🔫" },
-            { id: 5, name: "USP-S | Kill Confirmed", price: 120, rarity: "Pink", icon: "🔫" },
-            { id: 6, name: "Glock | Water Elemental", price: 15, rarity: "Purple", icon: "🔫" },
+            { id: 5, name: "USP-S | Printstream", price: 120, rarity: "Pink", icon: "🔫" },
+            { id: 6, name: "Glock | Neo-Noir", price: 15, rarity: "Purple", icon: "🔫" },
             { id: 7, name: "P250 | Sand Dune", price: 0.5, rarity: "Blue", icon: "🔫" }
         ];
 
@@ -112,15 +90,17 @@
             const [isSpinning, setIsSpinning] = useState(false);
             const [tape, setTape] = useState([]);
             const [offset, setOffset] = useState(0);
-            const [winItem, setWinItem] = useState(null);
-            const tapeRef = useRef(null);
 
             useEffect(() => {
                 return auth.onAuthStateChanged(async (u) => {
                     if (u) {
                         setUser(u);
                         const docRef = db.collection("users").doc(u.uid);
-                        docRef.onSnapshot(snap => { if(snap.exists) setProfile(snap.data()); });
+                        // Подписка на обновления Firestore
+                        docRef.onSnapshot(snap => {
+                            if(snap.exists) setProfile(snap.data());
+                            else docRef.set({ balance: 5000, inventory: [], exp: 0, level: 1, nickname: u.displayName });
+                        });
                     }
                 });
             }, []);
@@ -128,93 +108,89 @@
             const startRoulette = (caseObj) => {
                 if (profile.balance < caseObj.price || isSpinning) return;
                 
-                // Генерируем ленту из 50 предметов
                 const newTape = [];
-                for(let i=0; i<50; i++) {
+                for(let i=0; i<60; i++) {
                     const randomId = caseObj.items[Math.floor(Math.random() * caseObj.items.length)];
                     newTape.push({...ITEMS_DB.find(x => x.id === randomId), tempId: i});
                 }
                 
-                const win = newTape[45]; // 46-й предмет будет выигрышным
-                setWinItem(win);
                 setTape(newTape);
                 setIsSpinning(true);
                 setOffset(0);
 
-                // Запускаем анимацию
                 setTimeout(() => {
-                    // Рассчитываем сдвиг: (ширина предмета + margin) * индекс + центрирование
                     const itemWidth = 150;
-                    const finalOffset = (45 * itemWidth) - (window.innerWidth / 2) + 100;
+                    const winIndex = 55; // Победный предмет
+                    const finalOffset = (winIndex * itemWidth) - (window.innerWidth / 2) + 100;
                     setOffset(finalOffset);
-                }, 100);
-
-                // Конец анимации
-                setTimeout(async () => {
-                    const drop = {...win, instId: Date.now()};
-                    let newExp = profile.exp + 15;
-                    let newLevel = profile.level;
-                    if (newExp >= 100) { newExp = 0; newLevel++; }
-
-                    await db.collection("users").doc(user.uid).update({
-                        balance: profile.balance - caseObj.price,
-                        inventory: [...profile.inventory, drop],
-                        exp: newExp, level: newLevel
-                    });
                     
-                    setIsSpinning(false);
-                }, 5500);
+                    // Сохраняем результат в базу через 5.5 сек
+                    setTimeout(async () => {
+                        const winItem = newTape[winIndex];
+                        await db.collection("users").doc(user.uid).update({
+                            balance: profile.balance - caseObj.price,
+                            inventory: firebase.firestore.FieldValue.arrayUnion({...winItem, instId: Date.now()}),
+                            exp: (profile.exp + 20) % 100,
+                            level: profile.exp + 20 >= 100 ? profile.level + 1 : profile.level
+                        });
+                        setIsSpinning(false);
+                    }, 5500);
+                }, 100);
             };
 
-            if (!user) return <div className="h-screen flex items-center justify-center bg-[#0b0e14]"><button onClick={() => auth.signInWithPopup(provider)} className="bg-yellow-500 text-black px-12 py-4 rounded-xl font-bold uppercase">Войти через Google</button></div>;
+            if (!user) return (
+                <div className="h-screen flex items-center justify-center bg-[#0b0e14]">
+                    <button onClick={() => auth.signInWithPopup(provider)} className="bg-yellow-500 text-black px-10 py-4 rounded-xl font-bold">
+                        Войти через Google
+                    </button>
+                </div>
+            );
 
             return (
-                <div className="flex min-h-screen">
-                    <aside className="cb-sidebar flex flex-col items-center py-6 gap-8">
+                <div className="flex">
+                    <aside className="cb-sidebar flex flex-col items-center py-6 gap-6">
                         <div className="text-yellow-500 font-black text-2xl">M</div>
-                        <div className="flex flex-col gap-6 text-gray-500"><span>🏠</span><span>🏆</span><span>🎁</span></div>
+                        <div className="text-gray-500 text-xl">🏠</div>
+                        <div className="text-gray-500 text-xl">🏆</div>
                     </aside>
 
-                    <div className="main-wrapper flex-1">
-                        <header className="flex justify-between items-center p-6 bg-[#0b0e14]/80 border-b border-gray-800">
-                            <div className="text-xl font-black text-yellow-500 uppercase">Major Win</div>
-                            <div className="flex items-center gap-6">
+                    <div className="main-wrapper flex-1 bg-[#0b0e14]">
+                        <header className="flex justify-between items-center p-6 border-b border-gray-800">
+                            <h1 className="text-yellow-500 font-bold uppercase tracking-widest">Major Win</h1>
+                            <div className="flex items-center gap-4">
                                 <div className="text-right">
-                                    <p className="text-xl font-black text-green-400">{profile.balance.toFixed(2)} $</p>
-                                    <div className="xp-bar w-32 mt-1"><div className="xp-progress" style={{width: `${profile.exp}%`}}></div></div>
+                                    <p className="text-green-400 font-bold">{profile.balance.toFixed(2)} $</p>
+                                    <div className="xp-bar w-24 mt-1"><div className="xp-progress" style={{width: `${profile.exp}%`}}></div></div>
                                 </div>
-                                <img src={user.photoURL} className="w-10 h-10 rounded-full border border-gray-800" />
+                                <img src={user.photoURL} className="w-10 h-10 rounded-full border border-gray-700" />
                             </div>
                         </header>
 
                         <main className="p-8">
                             {/* РУЛЕТКА */}
                             {tape.length > 0 && (
-                                <div className="mb-10 relative">
-                                    <div className="roulette-container">
-                                        <div className="roulette-line"></div>
-                                        <div className="roulette-tape" style={{ transform: `translateX(-${offset}px)` }}>
-                                            {tape.map(item => (
-                                                <div key={item.tempId} className={`roulette-item rarity-${item.rarity}`}>
-                                                    <span className="text-4xl">{item.icon}</span>
-                                                    <p className="text-[10px] mt-2 font-bold truncate w-24 text-center">{item.name}</p>
-                                                </div>
-                                            ))}
-                                        </div>
+                                <div className="mb-10 roulette-container">
+                                    <div className="roulette-line"></div>
+                                    <div className="roulette-tape" style={{ transform: `translateX(-${offset}px)` }}>
+                                        {tape.map(item => (
+                                            <div key={item.tempId} className={`roulette-item rarity-${item.rarity}`}>
+                                                <span className="text-4xl">{item.icon}</span>
+                                                <p className="text-[10px] mt-2 font-bold">{item.name}</p>
+                                            </div>
+                                        ))}
                                     </div>
-                                    {!isSpinning && winItem && <p className="text-center mt-4 text-yellow-500 font-bold">Выпало: {winItem.name}!</p>}
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                                 {CASES.map(c => (
                                     <div key={c.id} className="bg-[#12161e] p-6 rounded-2xl text-center border border-gray-800">
-                                        <div className="text-6xl mb-6">📦</div>
-                                        <h4 className="text-sm font-bold mb-4">{c.name}</h4>
+                                        <div className="text-6xl mb-4">📦</div>
+                                        <h3 className="text-sm font-bold mb-4">{c.name}</h3>
                                         <button 
                                             onClick={() => startRoulette(c)}
                                             disabled={isSpinning}
-                                            className="w-full bg-[#1c212b] py-3 rounded-xl text-yellow-500 font-black hover:bg-yellow-500 hover:text-black transition disabled:opacity-30"
+                                            className="w-full bg-[#1c212b] py-3 rounded-lg text-yellow-500 font-bold hover:bg-yellow-500 hover:text-black transition"
                                         >
                                             {c.price} $
                                         </button>
@@ -222,13 +198,12 @@
                                 ))}
                             </div>
 
-                            <div className="mt-20">
-                                <h3 className="text-xs font-black uppercase text-gray-600 mb-6 border-l-2 border-yellow-500 pl-4 tracking-widest">Инвентарь</h3>
+                            <div className="mt-16">
+                                <h2 className="text-gray-600 font-bold uppercase text-xs mb-6">Ваш инвентарь</h2>
                                 <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
-                                    {profile.inventory.slice().reverse().map(item => (
-                                        <div key={item.instId} className={`bg-[#12161e] p-3 rounded-xl border-b-2 rarity-${item.rarity} text-center`}>
-                                            <div className="text-2xl mb-2">{item.icon}</div>
-                                            <p className="text-[9px] font-bold truncate">{item.name}</p>
+                                    {profile.inventory?.slice().reverse().map(item => (
+                                        <div key={item.instId} className={`bg-[#12161e] p-3 rounded-lg border-b-2 rarity-${item.rarity} text-center`}>
+                                            <div className="text-2xl">{item.icon}</div>
                                         </div>
                                     ))}
                                 </div>
