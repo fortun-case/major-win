@@ -1,1 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap');
 
+body { background: #0b1019; color: #ced4da; font-family: 'Exo 2', sans-serif; margin: 0; }
+
+/* Редкости (как на Case-Battle) */
+.rarity-Gold { border-bottom: 3px solid #eab308; color: #eab308; }
+.rarity-Red { border-bottom: 3px solid #eb4b4b; color: #eb4b4b; }
+.rarity-Pink { border-bottom: 3px solid #d32ee6; color: #d32ee6; }
+.rarity-Purple { border-bottom: 3px solid #8847ff; color: #8847ff; }
+.rarity-Blue { border-bottom: 3px solid #4b69ff; color: #4b69ff; }
+
+/* Навигация */
+.cb-sidebar { width: 80px; background: #0d121d; border-right: 1px solid #1c2435; height: 100vh; position: fixed; left: 0; top: 0; z-index: 100; }
+.main-content { margin-left: 80px; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Модалка с рулеткой */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.roulette-box { width: 100%; max-width: 900px; background: #121926; padding: 40px; border-radius: 30px; border: 1px solid #252f44; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+.roulette-container { width: 100%; height: 160px; background: #0b1019; position: relative; overflow: hidden; border-radius: 15px; margin: 20px 0; display: flex; align-items: center; }
+.roulette-line { position: absolute; left: 50%; width: 2px; height: 100%; background: #f8b400; z-index: 10; box-shadow: 0 0 20px #f8b400; transform: translateX(-50%); }
+.roulette-tape { display: flex; transition: transform 5s cubic-bezier(0.1, 0, 0.05, 1); will-change: transform; }
+.roulette-item { min-width: 140px; height: 130px; margin: 0 5px; background: #121926; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #1c2435; font-size: 3rem; }
+
+/* Прогресс-бар */
+.xp-bar-bg { height: 6px; background: #1c2435; border-radius: 10px; width: 140px; overflow: hidden; }
+.xp-bar-fill { height: 100%; background: linear-gradient(90deg, #f8b400, #ff8a00); transition: width 0.5s; }
