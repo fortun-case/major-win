@@ -1,101 +1,107 @@
-// Твой конфиг Major Win
 const firebaseConfig = {
   apiKey: "AIzaSyAZxG500x9pmjg1sy6iJXMKrUMhZ2TFFCk",
   authDomain: "major-win.firebaseapp.com",
   projectId: "major-win",
-  databaseURL: "https://major-win-default-rtdb.europe-west1.firebasedatabase.app", // Добавили ссылку на базу
+  databaseURL: "https://major-win-default-rtdb.europe-west1.firebasedatabase.app", 
   storageBucket: "major-win.firebasestorage.app",
   messagingSenderId: "253408264315",
   appId: "1:253408264315:web:1246e65a3c2ed70c4362de"
 };
 
-// Инициализация
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
 const items = [
-  { name: "P250 | Песчаные дюны", chance: 70, color: "#b0c3d9", rarity: "Ширпотреб" },
-  { name: "AK-47 | Сланцы", chance: 20, color: "#4b69ff", rarity: "Засекреченное" },
-  { name: "M4A4 | Вой", chance: 9, color: "#eb4b4b", rarity: "Тайное" },
-  { name: "★ Керамбит | Золото", chance: 1, color: "#ffca2d", rarity: "Чрезвычайно редкое" }
+    { name: "P250 | Песчаные дюны", chance: 70, color: "#b0c3d9", rarity: "Ширпотреб" },
+    { name: "AK-47 | Сланцы", chance: 20, color: "#4b69ff", rarity: "Засекреченное" },
+    { name: "M4A4 | Вой", chance: 9, color: "#eb4b4b", rarity: "Тайное" },
+    { name: "★ Керамбит | Золото", chance: 1, color: "#ffca2d", rarity: "Нож!" }
 ];
 
-let currentBalance = 0;
+let balance = 0;
+let inventory = [];
 let currentUser = null;
 
-// 1. СЛУШАТЕЛЬ АВТОРИЗАЦИИ (Загрузка данных при входе)
+// Слушатель входа
 auth.onAuthStateChanged((user) => {
     if (user) {
         currentUser = user;
         document.getElementById('login-btn').style.display = 'none';
-        document.getElementById('balance-display').style.display = 'block';
-        
-        // Загружаем баланс из базы данных
+        document.getElementById('user-info').style.display = 'block';
+        document.getElementById('user-email').innerText = user.email;
+
+        // Загрузка данных из Firebase
         db.ref('users/' + user.uid).on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                currentBalance = data.balance;
+                balance = data.balance;
+                inventory = data.inventory || [];
             } else {
-                // Если новый игрок — даем бонус 1000$
-                currentBalance = 1000;
-                saveData();
+                balance = 1000; // Бонус новичку
+                inventory = [];
+                saveToDB();
             }
-            updateUIBalance();
+            updateUI();
         });
     }
 });
 
-// 2. ФУНКЦИЯ СОХРАНЕНИЯ
-function saveData() {
+function saveToDB() {
     if (currentUser) {
         db.ref('users/' + currentUser.uid).set({
-            balance: currentBalance,
+            balance: balance,
+            inventory: inventory,
             email: currentUser.email
         });
     }
 }
 
-// 3. ЛОГИКА ОТКРЫТИЯ
 document.getElementById('open-btn').onclick = () => {
-    if (!currentUser) {
-        alert("Сначала войди через Google!");
-        return;
-    }
-    if (currentBalance < 50) {
-        alert("Баланс пуст! Пополни его (скоро сделаем кнопку)");
-        return;
-    }
+    if (!currentUser) return alert("Войди в аккаунт!");
+    if (balance < 50) return alert("Нужно больше золота!");
 
-    currentBalance -= 50;
-    
+    balance -= 50;
+
+    // Рандом
     let rand = Math.random() * 100;
     let cumulative = 0;
-    let dropped = items[0];
+    let drop = items[0];
 
     for (let item of items) {
         cumulative += item.chance;
         if (rand < cumulative) {
-            dropped = item;
+            drop = item;
             break;
         }
     }
 
-    // Показываем результат
-    document.getElementById('item-name').innerText = dropped.name;
-    document.getElementById('item-name').style.color = dropped.color;
-    document.getElementById('item-rarity-light').style.background = dropped.color;
+    // Добавляем в инвентарь (в начало списка)
+    inventory.unshift(drop);
     
-    // Сохраняем новый баланс в облако
-    saveData();
+    // Эффекты
+    document.getElementById('item-name').innerText = drop.name;
+    document.getElementById('item-name').style.color = drop.color;
+    document.getElementById('item-rarity-text').innerText = drop.rarity;
+    document.getElementById('rarity-glow').style.background = drop.color;
+    
+    saveToDB();
 };
 
-// Вход через Google
-document.getElementById('login-btn').onclick = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
-};
+function updateUI() {
+    document.getElementById('balance-amount').innerText = balance;
+    const invList = document.getElementById('inventory-list');
+    invList.innerHTML = '';
 
-function updateUIBalance() {
-    document.getElementById('balance-amount').innerText = currentBalance;
+    inventory.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'inv-item';
+        div.style.borderBottomColor = item.color;
+        div.innerHTML = `<strong>${item.name}</strong><br><small>${item.rarity}</small>`;
+        invList.appendChild(div);
+    });
 }
+
+document.getElementById('login-btn').onclick = () => {
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+};
