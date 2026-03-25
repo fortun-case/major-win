@@ -1,1 +1,83 @@
+body {
+    background-color: #050505;
+    color: white;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
+.header {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0f0f0f;
+    border-bottom: 1px solid #222;
+}
+
+h1 { margin: 0; letter-spacing: 2px; font-size: 24px; }
+.gold { color: #ffca2d; }
+
+.main-container {
+    margin-top: 60px;
+}
+
+.case-card {
+    background: #111;
+    border: 1px solid #333;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+}
+
+.item-display {
+    position: relative;
+    margin-bottom: 20px;
+    height: 150px;
+}
+
+#item-rarity-light {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    filter: blur(40px);
+    opacity: 0.3;
+    z-index: 0;
+}
+
+#item-img {
+    position: relative;
+    z-index: 1;
+    max-width: 100%;
+}
+
+.main-button {
+    background: linear-gradient(135deg, #ffca2d 0%, #ff8c00 100%);
+    color: black;
+    border: none;
+    padding: 15px 30px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+.main-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 202, 45, 0.4);
+}
+
+#login-btn {
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
