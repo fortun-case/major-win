@@ -53,3 +53,29 @@ button:disabled { background: #555; }
 
 .history-list { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
 .history-item { background: #444; padding: 5px 10px; border-radius: 4px; font-size: 14px; }
+.item {
+    min-width: 100px;
+    height: 120px; /* Увеличили высоту */
+    margin: 0 5px;
+    background: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 10px;
+    overflow: hidden;
+}
+
+.item img {
+    max-width: 80%;
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+}
+
+.item p {
+    margin: 5px 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 90%;
+}
