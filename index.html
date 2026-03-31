@@ -3,32 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAJOR WIN | Реальные шансы</title>
+    <title>MAJOR WIN | Исправленная версия</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
     
+    <!-- Firebase SDK (Compat version для стабильности) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #050505; color: white; }
+        .text-glow { text-shadow: 0 0 20px rgba(220, 38, 38, 0.5); }
+        .animate-fade { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-[#050505] text-white font-sans min-h-screen overflow-x-hidden">
+<body class="min-h-screen overflow-x-hidden">
 
     <!-- Навигация -->
     <nav class="fixed top-0 left-0 right-0 z-[100] bg-black/95 border-b border-red-600/30 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
             <div class="flex items-center gap-8">
-                <div class="flex items-center gap-2 cursor-pointer group" onclick="showSection('home')">
-                    <div class="w-10 h-10 bg-red-600 flex items-center justify-center rounded-lg rotate-45 group-hover:rotate-0 transition-all duration-500 shadow-[0_0_20px_rgba(220,38,38,0.6)]">
+                <div class="flex items-center gap-2 cursor-pointer group" onclick="window.showSection('home')">
+                    <div class="w-10 h-10 bg-red-600 flex items-center justify-center rounded-lg rotate-45 group-hover:rotate-0 transition-all shadow-[0_0_20px_rgba(220,38,38,0.6)]">
                         <i class="fa-solid fa-bolt text-white -rotate-45 group-hover:rotate-0 transition-all"></i>
                     </div>
-                    <span class="text-2xl font-black tracking-tighter text-white uppercase italic">MAJOR WIN</span>
+                    <span class="text-2xl font-black italic uppercase tracking-tighter">MAJOR WIN</span>
                 </div>
                 
-                <div class="hidden md:flex items-center gap-6 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
-                    <button onclick="showSection('home')" class="nav-link hover:text-white transition-colors py-2">Кейсы</button>
-                    <button onclick="showSection('upgrades')" class="nav-link hover:text-white transition-colors py-2">Апгрейды</button>
-                    <button onclick="showSection('contracts')" class="nav-link hover:text-white transition-colors py-2">Контракты</button>
+                <div class="hidden md:flex items-center gap-6 text-[11px] font-black uppercase tracking-widest text-zinc-500">
+                    <button onclick="window.showSection('home')" class="hover:text-white transition-colors">Кейсы</button>
+                    <button onclick="window.showSection('upgrades')" class="hover:text-white transition-colors">Апгрейды</button>
+                    <button onclick="window.showSection('contracts')" class="hover:text-white transition-colors">Контракты</button>
                 </div>
             </div>
 
@@ -37,75 +48,60 @@
                     <i class="fa-solid fa-wallet text-red-600"></i>
                     <span id="balance-display" class="font-mono font-bold text-lg text-emerald-400">$0.00</span>
                 </div>
-                <button onclick="showSection('profile')" class="w-12 h-12 bg-zinc-900 border border-white/10 rounded-xl flex items-center justify-center hover:border-red-600 transition-all group overflow-hidden">
+                <button onclick="window.showSection('profile')" class="w-12 h-12 bg-zinc-900 border border-white/10 rounded-xl flex items-center justify-center hover:border-red-600 transition-all overflow-hidden">
                     <img id="user-avatar" src="" class="w-full h-full hidden object-cover">
-                    <i id="user-icon" class="fa-solid fa-user text-zinc-400 group-hover:text-white"></i>
+                    <i id="user-icon" class="fa-solid fa-user text-zinc-400"></i>
                 </button>
             </div>
         </div>
     </nav>
 
     <main class="pt-32 pb-20 max-w-7xl mx-auto px-4">
+        <!-- Секции будут переключаться JS -->
         
-        <!-- ГЛАВНАЯ (КЕЙСЫ) -->
+        <!-- КЕЙСЫ -->
         <section id="sec-home" class="content-section animate-fade">
-            <div class="relative py-24 text-center border border-red-600/20 rounded-[40px] bg-zinc-900/20 overflow-hidden mb-16">
-                <h1 class="text-5xl md:text-8xl font-black italic tracking-tighter mb-6 relative z-10 uppercase">
-                    ОТКРЫВАЙ КЕЙСЫ НА <span class="text-red-600 text-glow">MAJOR WIN</span>
-                </h1>
-                <p class="text-zinc-500 text-xl font-bold uppercase tracking-widest relative z-10">Испытай удачу у нас. У нас реальные шансы!</p>
+            <div class="relative py-20 text-center border border-red-600/20 rounded-[40px] bg-zinc-900/20 overflow-hidden mb-16">
+                <h1 class="text-5xl md:text-7xl font-black italic mb-4 uppercase">ОТКРЫВАЙ КЕЙСЫ</h1>
+                <p class="text-zinc-500 font-bold uppercase tracking-widest">Честный дроп и реальные шансы</p>
             </div>
             <div id="cases-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
         </section>
 
         <!-- АПГРЕЙДЫ -->
         <section id="sec-upgrades" class="content-section hidden animate-fade">
-            <div class="max-w-5xl mx-auto">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                    <!-- Левая часть: Выбор своего скина -->
-                    <div class="bg-zinc-900/50 p-8 rounded-[32px] border border-white/5">
-                        <h3 class="text-center font-black uppercase italic mb-6 text-zinc-500">Ваш предмет</h3>
-                        <div id="upgrade-source-box" class="h-64 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center transition-all">
-                            <i class="fa-solid fa-plus text-4xl text-zinc-800 mb-4"></i>
-                            <p class="text-zinc-600 font-bold uppercase text-xs">Выберите из инвентаря ниже</p>
-                        </div>
+            <div class="max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div id="upgrade-source-box" class="h-48 bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-6 text-center">
+                        <p class="text-zinc-600 font-black uppercase text-xs">Выберите предмет из инвентаря</p>
                     </div>
-                    <!-- Правая часть: Выбор цели -->
-                    <div class="bg-zinc-900/50 p-8 rounded-[32px] border border-white/5 relative">
-                        <h3 class="text-center font-black uppercase italic mb-6 text-zinc-500">Цель апгрейда</h3>
-                        <div id="upgrade-target-box" class="h-64 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center overflow-hidden">
-                            <i class="fa-solid fa-crosshairs text-4xl text-zinc-800 mb-4"></i>
-                            <p class="text-zinc-600 font-bold uppercase text-xs">Выберите предмет справа</p>
-                        </div>
+                    <div id="upgrade-target-box" class="h-48 bg-zinc-900/50 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-6 text-center">
+                        <p class="text-zinc-600 font-black uppercase text-xs">Выберите цель в магазине</p>
                     </div>
                 </div>
 
-                <!-- Центр: Управление шансом -->
-                <div class="bg-black border border-red-600/20 p-10 rounded-[40px] flex flex-col items-center mb-12 shadow-2xl relative overflow-hidden">
-                    <div id="upgrade-circle-container" class="relative w-48 h-48 mb-8">
+                <div class="bg-zinc-900 p-8 rounded-[40px] border border-white/5 flex flex-col items-center mb-10">
+                    <div class="relative w-40 h-40 mb-6">
                         <svg class="w-full h-full -rotate-90">
-                            <circle cx="96" cy="96" r="88" fill="transparent" stroke="#18181b" stroke-width="12"></circle>
-                            <circle id="upgrade-chance-bar" cx="96" cy="96" r="88" fill="transparent" stroke="#dc2626" stroke-width="12" stroke-dasharray="553" stroke-dashoffset="553" stroke-linecap="round" class="transition-all duration-500"></circle>
+                            <circle cx="80" cy="80" r="70" fill="transparent" stroke="#18181b" stroke-width="10"></circle>
+                            <circle id="upgrade-chance-bar" cx="80" cy="80" r="70" fill="transparent" stroke="#dc2626" stroke-width="10" stroke-dasharray="440" stroke-dashoffset="440" stroke-linecap="round" class="transition-all duration-700"></circle>
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <span id="upgrade-chance-val" class="text-4xl font-black italic">0%</span>
-                            <span class="text-[10px] font-black uppercase text-zinc-500">Шанс</span>
+                            <span id="upgrade-chance-val" class="text-3xl font-black">0%</span>
+                            <span class="text-[8px] uppercase font-black text-zinc-500">Шанс</span>
                         </div>
-                        <!-- Стрелка рулетки -->
-                        <div id="upgrade-arrow" class="absolute top-0 left-1/2 -translate-x-1/2 -mt-2 w-1 h-6 bg-white z-20 hidden"></div>
                     </div>
-                    <button id="btn-upgrade-start" onclick="executeUpgrade()" class="px-16 py-5 bg-red-600 rounded-2xl font-black uppercase italic tracking-widest disabled:opacity-20 hover:bg-red-500 transition-all">Начать апгрейд</button>
+                    <button id="btn-upgrade-start" onclick="window.executeUpgrade()" class="px-12 py-4 bg-red-600 rounded-xl font-black uppercase italic tracking-widest disabled:opacity-30">Начать апгрейд</button>
                 </div>
 
-                <!-- Выбор предметов -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[400px]">
-                    <div class="bg-zinc-900/30 p-4 rounded-2xl border border-white/5 overflow-y-auto">
-                        <h4 class="text-xs font-black uppercase text-zinc-600 mb-4">Ваш инвентарь</h4>
-                        <div id="upgrade-inv-list" class="grid grid-cols-3 gap-3"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-zinc-900/20 p-4 rounded-2xl border border-white/5">
+                        <h4 class="text-[10px] font-black uppercase text-zinc-500 mb-4">Ваш инвентарь</h4>
+                        <div id="upgrade-inv-list" class="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto"></div>
                     </div>
-                    <div class="bg-zinc-900/30 p-4 rounded-2xl border border-white/5 overflow-y-auto">
-                        <h4 class="text-xs font-black uppercase text-zinc-600 mb-4">Магазин апгрейдов</h4>
-                        <div id="upgrade-shop-list" class="grid grid-cols-3 gap-3"></div>
+                    <div class="bg-zinc-900/20 p-4 rounded-2xl border border-white/5">
+                        <h4 class="text-[10px] font-black uppercase text-zinc-500 mb-4">Магазин (Цели)</h4>
+                        <div id="upgrade-shop-list" class="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto"></div>
                     </div>
                 </div>
             </div>
@@ -114,27 +110,12 @@
         <!-- КОНТРАКТЫ -->
         <section id="sec-contracts" class="content-section hidden animate-fade">
             <div class="max-w-4xl mx-auto bg-zinc-900/40 p-10 rounded-[40px] border border-white/5">
-                <div class="text-center mb-10">
-                    <h2 class="text-4xl font-black italic uppercase mb-2">Контракт обмена</h2>
-                    <p class="text-zinc-500 text-sm font-bold uppercase tracking-widest">Минимум 3 предмета, максимум 10</p>
+                <div id="contract-slots" class="grid grid-cols-5 gap-3 mb-8 min-h-[100px] p-4 bg-black/40 rounded-2xl border border-dashed border-zinc-800"></div>
+                <div class="text-center mb-8">
+                    <p id="contract-total-value" class="text-2xl font-black italic text-emerald-400 mb-4">$0.00</p>
+                    <button id="btn-contract-start" onclick="window.executeContract()" class="px-12 py-4 bg-white text-black rounded-xl font-black uppercase italic tracking-widest disabled:opacity-30">Подписать контракт</button>
                 </div>
-                
-                <div id="contract-slots" class="grid grid-cols-5 gap-4 mb-10 min-h-[120px] p-6 bg-black/40 rounded-3xl border border-dashed border-zinc-800">
-                    <!-- Слоты контракта -->
-                </div>
-
-                <div class="flex flex-col items-center gap-6">
-                    <div class="text-center">
-                        <p class="text-zinc-500 text-[10px] font-black uppercase mb-1">Суммарная стоимость</p>
-                        <p id="contract-total-value" class="text-3xl font-black italic text-emerald-400">$0.00</p>
-                    </div>
-                    <button id="btn-contract-start" onclick="executeContract()" class="px-16 py-5 bg-white text-black hover:bg-red-600 hover:text-white transition-all rounded-2xl font-black uppercase italic tracking-widest disabled:opacity-20">Подписать контракт</button>
-                </div>
-
-                <div class="mt-12 border-t border-white/5 pt-10">
-                    <h4 class="text-xs font-black uppercase text-zinc-600 mb-6 text-center">Выберите предметы для контракта</h4>
-                    <div id="contract-inv-list" class="grid grid-cols-4 sm:grid-cols-6 gap-3"></div>
-                </div>
+                <div id="contract-inv-list" class="grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
             </div>
         </section>
 
@@ -142,35 +123,31 @@
         <section id="sec-profile" class="content-section hidden animate-fade">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div class="bg-zinc-900/80 p-8 rounded-3xl border border-white/5 h-fit shadow-2xl">
-                    <h3 class="text-xl font-black uppercase italic mb-8 border-l-4 border-red-600 pl-4">Личный кабинет</h3>
+                    <h3 class="text-xl font-black uppercase italic mb-8 border-l-4 border-red-600 pl-4">Профиль</h3>
                     
                     <div id="auth-box" class="mb-10 p-6 bg-black/50 rounded-2xl border border-white/5 text-center">
                         <div id="user-logged-out">
-                            <p class="text-zinc-500 text-xs mb-4 font-bold uppercase">Войдите, чтобы сохранить прогресс</p>
-                            <button onclick="loginGoogle()" class="w-full py-4 bg-white text-black font-black uppercase rounded-xl hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-3">
+                            <button onclick="window.loginGoogle()" class="w-full py-4 bg-white text-black font-black uppercase rounded-xl hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-3">
                                 <i class="fa-brands fa-google"></i> Google Login
                             </button>
                         </div>
                         <div id="user-logged-in" class="hidden">
-                            <p class="text-emerald-400 text-xs mb-2 font-black uppercase tracking-widest">Авторизован</p>
-                            <p id="user-email" class="text-zinc-400 text-xs mb-6 truncate"></p>
-                            <button onclick="logout()" class="text-zinc-600 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-all">Выйти из аккаунта</button>
+                            <p id="user-email" class="text-zinc-500 text-xs mb-4 truncate"></p>
+                            <button onclick="window.logout()" class="text-red-500 text-[10px] font-black uppercase tracking-widest">Выйти</button>
                         </div>
                     </div>
 
-                    <div class="space-y-8">
-                        <div>
-                            <label class="block text-[10px] uppercase font-black text-zinc-500 mb-3 tracking-widest">Никнейм</label>
-                            <div class="flex gap-2">
-                                <input id="profile-name-input" type="text" class="flex-1 bg-black border border-white/5 rounded-xl px-5 py-3 outline-none focus:border-red-600 transition-all font-bold">
-                                <button onclick="saveNick()" class="px-6 py-3 bg-red-600 rounded-xl font-black uppercase text-xs">Save</button>
-                            </div>
+                    <div class="space-y-4">
+                        <label class="block text-[10px] uppercase font-black text-zinc-500 tracking-widest">Ваш Ник</label>
+                        <div class="flex gap-2">
+                            <input id="profile-name-input" type="text" class="flex-1 bg-black border border-white/5 rounded-xl px-4 py-2 outline-none focus:border-red-600 font-bold">
+                            <button onclick="window.saveNick()" class="px-4 py-2 bg-red-600 rounded-xl font-black uppercase text-xs">OK</button>
                         </div>
                     </div>
                 </div>
                 <div class="lg:col-span-2">
                     <div class="flex items-center justify-between mb-8">
-                        <h3 class="text-3xl font-black uppercase italic">Ваш склад</h3>
+                        <h3 class="text-3xl font-black uppercase italic">Склад</h3>
                         <span id="profile-inv-count" class="bg-red-600 px-4 py-1 rounded-full text-sm font-black">0</span>
                     </div>
                     <div id="profile-inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
@@ -178,40 +155,36 @@
             </div>
         </section>
 
-        <!-- КЕЙС -->
+        <!-- КЕЙС ДЕТАЛИ -->
         <section id="sec-case-detail" class="content-section hidden animate-fade">
-            <button onclick="showSection('home')" class="mb-8 flex items-center gap-2 text-zinc-500 hover:text-white uppercase font-black text-xs tracking-widest transition-all">
-                <i class="fa-solid fa-chevron-left"></i> Назад
-            </button>
-            <div class="bg-zinc-900/50 border border-white/5 rounded-[40px] p-6 md:p-12">
-                <div id="roulette-container" class="relative h-48 md:h-56 bg-black rounded-3xl border-y-2 border-red-600/30 overflow-hidden mb-12">
+            <button onclick="window.showSection('home')" class="mb-6 text-zinc-500 hover:text-white font-black text-xs uppercase"><i class="fa-solid fa-arrow-left"></i> Назад</button>
+            <div class="bg-zinc-900/50 p-10 rounded-[40px] border border-white/5">
+                <div id="roulette-container" class="relative h-48 bg-black rounded-3xl border-y-2 border-red-600/30 overflow-hidden mb-10">
                     <div class="absolute top-0 bottom-0 left-1/2 w-1 bg-red-600 z-10 -translate-x-1/2"></div>
-                    <div id="roulette-track" class="flex items-center absolute h-full"></div>
+                    <div id="roulette-track" class="flex items-center absolute h-full transition-transform"></div>
                 </div>
-                <div class="flex flex-col items-center">
-                    <h2 id="case-title" class="text-4xl md:text-6xl font-black italic uppercase mb-8"></h2>
-                    <button id="btn-spin" onclick="startSpin()" class="px-20 py-6 bg-red-600 text-white rounded-2xl font-black text-2xl uppercase italic tracking-widest shadow-2xl">Открыть за <span id="case-price"></span></button>
+                <div class="text-center">
+                    <h2 id="case-title" class="text-4xl font-black italic uppercase mb-6"></h2>
+                    <button id="btn-spin" onclick="window.startSpin()" class="px-16 py-5 bg-red-600 rounded-2xl font-black text-xl uppercase italic">ОТКРЫТЬ ЗА <span id="case-price"></span></button>
                 </div>
             </div>
-            <div id="case-loot-grid" class="grid grid-cols-2 md:grid-cols-6 gap-4 mt-16"></div>
+            <div id="case-loot-grid" class="grid grid-cols-2 md:grid-cols-6 gap-3 mt-12"></div>
         </section>
 
     </main>
 
     <!-- Modal Win -->
-    <div id="modal-win" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 bg-black/98 backdrop-blur-2xl">
-        <div class="bg-zinc-900 border border-white/5 p-10 rounded-[50px] max-w-md w-full text-center relative overflow-hidden">
-            <div id="modal-glow" class="absolute -top-32 left-1/2 -translate-x-1/2 w-80 h-80 blur-[120px] opacity-30"></div>
-            <h3 class="text-zinc-500 font-black uppercase mb-12 text-xs">Получен предмет</h3>
-            <div class="w-48 h-48 mx-auto mb-8 bg-black rounded-[40px] flex items-center justify-center shadow-inner">
-                <i class="fa-solid fa-gun text-5xl text-zinc-800"></i>
+    <div id="modal-win" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+        <div class="bg-zinc-900 border border-white/5 p-10 rounded-[40px] max-w-sm w-full text-center">
+            <h3 class="text-zinc-500 font-black uppercase mb-8 text-[10px] tracking-widest">Вы выбили</h3>
+            <div id="win-icon-box" class="w-40 h-40 mx-auto mb-6 bg-black rounded-3xl flex items-center justify-center">
+                <i class="fa-solid fa-gun text-4xl text-zinc-800"></i>
             </div>
-            <div id="win-rarity" class="text-[10px] font-black uppercase mb-3"></div>
-            <h2 id="win-name" class="text-2xl font-black italic mb-10 tracking-tight"></h2>
-            <p id="win-price" class="text-emerald-400 font-bold text-2xl mb-12"></p>
-            <div class="grid grid-cols-1 gap-4">
-                <button id="btn-win-sell" class="w-full py-5 bg-white text-black font-black uppercase rounded-2xl">Продать</button>
-                <button onclick="closeWinModal()" class="w-full py-5 bg-zinc-800 text-zinc-500 font-black uppercase rounded-2xl">В инвентарь</button>
+            <h2 id="win-name" class="text-xl font-black italic mb-2"></h2>
+            <p id="win-price" class="text-emerald-400 font-bold text-xl mb-8"></p>
+            <div class="grid gap-3">
+                <button id="btn-win-sell" class="w-full py-4 bg-white text-black font-black uppercase rounded-xl">Продать</button>
+                <button onclick="window.closeWinModal()" class="w-full py-4 bg-zinc-800 text-zinc-400 font-black uppercase rounded-xl">На склад</button>
             </div>
         </div>
     </div>
