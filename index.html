@@ -1,479 +1,170 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Major Win - Открывай лучшие кейсы CS2</title>
-  <!-- Подключаем Tailwind CSS для красивого дизайна -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Подключаем иконки FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <style>
-    /* Плавная прокрутка для рулетки */
-    #roulette-track {
-      will-change: transform;
-    }
-    /* Прячем скроллбар */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0f172a; 
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155; 
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #475569; 
-    }
-  </style>
-</head>
-<body class="bg-slate-950 text-slate-200 font-sans min-h-screen selection:bg-indigo-500/30">
-
-  <!-- HEADER -->
-  <header class="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
-    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-      
-      <!-- Логотип -->
-      <div class="flex items-center gap-2 cursor-pointer group" onclick="switchView('home')">
-        <i class="fa-solid fa-crosshairs text-2xl text-indigo-500 group-hover:rotate-90 transition-transform duration-500"></i>
-        <span class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
-          MAJOR WIN
-        </span>
-      </div>
-
-      <!-- Баланс и инвентарь -->
-      <div class="flex items-center gap-3 sm:gap-4">
-        <button onclick="switchView('inventory')" class="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700">
-          <i class="fa-solid fa-box-open text-slate-400 text-sm"></i>
-          <span class="hidden sm:inline text-sm font-medium">Инвентарь</span>
-          <span id="header-inventory-count" class="bg-indigo-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
-        </button>
-        <div class="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-          <i class="fa-solid fa-wallet text-sm"></i>
-          <span id="header-balance" class="font-mono font-bold text-sm sm:text-base">$100.00</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- MAIN CONTENT -->
-  <main class="max-w-6xl mx-auto px-4 py-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAJOR WIN | Реальные шансы</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
     
-    <!-- VIEW: HOME (Список кейсов) -->
-    <div id="view-home" class="space-y-8 animate-[fadeIn_0.5s_ease-out]">
-      <div class="text-center py-10 sm:py-16 bg-slate-900/50 rounded-2xl border border-slate-800/50 relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/10"></div>
-        <h1 class="text-3xl sm:text-5xl font-black mb-4 relative z-10 px-2">
-          Открывай кейсы на <span class="text-indigo-400">MAJOR WIN</span>
-        </h1>
-        <p class="text-slate-400 max-w-xl mx-auto relative z-10 px-4 text-sm sm:text-base">
-          Испытай удачу в нашем симуляторе. Начни с $100 и собери инвентарь своей мечты прямо сейчас.
-        </p>
-      </div>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body class="bg-[#050505] text-white font-sans min-h-screen overflow-x-hidden">
 
-      <div>
-        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-          <i class="fa-solid fa-fire text-orange-500"></i> Популярные кейсы
-        </h2>
-        <div id="cases-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          <!-- Кейсы генерируются через JS -->
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW: CASE OPENING (Открытие кейса) -->
-    <div id="view-case" class="hidden space-y-8 animate-[fadeIn_0.3s_ease-out]">
-      <button onclick="switchView('home')" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-        <i class="fa-solid fa-arrow-left text-sm"></i> Назад к кейсам
-      </button>
-
-      <!-- Рулетка -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
-        <div class="text-center mb-6">
-          <h2 id="active-case-name" class="text-2xl sm:text-3xl font-black">Название кейса</h2>
-        </div>
-
-        <!-- Контейнер рулетки -->
-        <div class="relative bg-slate-950 h-40 sm:h-48 rounded-xl border-y border-slate-800 overflow-hidden mb-6 flex items-center shadow-inner">
-          <!-- Указатель (линия по центру) -->
-          <div class="absolute top-0 bottom-0 left-1/2 w-1 bg-yellow-500 z-10 -translate-x-1/2 shadow-[0_0_15px_rgba(234,179,8,1)]"></div>
-          
-          <!-- Лента предметов -->
-          <div id="roulette-track" class="flex items-center absolute left-0 h-full w-max">
-            <!-- Предметы рулетки генерируются через JS -->
-            <div class="w-full text-center text-slate-500 px-10">Нажмите «Открыть» чтобы начать</div>
-          </div>
-        </div>
-
-        <!-- Кнопка открытия -->
-        <div class="flex justify-center">
-          <button id="btn-spin" onclick="startSpin()" class="flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] hover:-translate-y-1">
-            <span id="btn-spin-text">Открыть за $0.00</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Содержимое кейса -->
-      <div>
-        <h3 class="text-xl font-bold mb-4 text-slate-400">Что может выпасть:</h3>
-        <div id="case-items-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-          <!-- Содержимое генерируется через JS -->
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW: INVENTORY (Инвентарь) -->
-    <div id="view-inventory" class="hidden space-y-6 animate-[fadeIn_0.3s_ease-out]">
-      <div class="flex items-center justify-between mb-4 sm:mb-8">
-        <h2 class="text-2xl sm:text-3xl font-black flex items-center gap-3">
-          <i class="fa-solid fa-box-open text-indigo-500"></i> Ваш инвентарь
-        </h2>
-        <div class="text-slate-400 text-sm sm:text-base">
-          Предметов: <span id="inventory-total" class="text-white font-bold">0</span>
-        </div>
-      </div>
-
-      <!-- Пустой инвентарь -->
-      <div id="inventory-empty" class="text-center py-16 sm:py-20 bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed">
-        <i class="fa-solid fa-ghost text-5xl text-slate-600 mb-4"></i>
-        <h3 class="text-xl font-bold text-slate-400 mb-2">Здесь пока пусто</h3>
-        <p class="text-slate-500 mb-6 text-sm sm:text-base">Откройте несколько кейсов, чтобы получить крутые скины</p>
-        <button onclick="switchView('home')" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-medium transition-colors">
-          Крутить кейсы
-        </button>
-      </div>
-
-      <!-- Сетка предметов -->
-      <div id="inventory-grid" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-        <!-- Инвентарь генерируется через JS -->
-      </div>
-    </div>
-
-  </main>
-
-  <!-- МОДАЛЬНОЕ ОКНО ВЫИГРЫША -->
-  <div id="modal-win" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center relative overflow-hidden animate-[scaleIn_0.3s_ease-out]">
-      <!-- Эффект свечения позади -->
-      <div id="modal-glow" class="absolute inset-0 opacity-10 blur-3xl"></div>
-      
-      <h3 class="text-xl sm:text-2xl font-black mb-6 relative z-10 text-white">Вы выбили!</h3>
-      
-      <div id="modal-item-color" class="w-24 h-24 sm:w-32 sm:h-32 bg-slate-950 rounded-xl mb-6 shadow-inner relative z-10 border-b-4 flex items-center justify-center">
-         <i class="fa-solid fa-gun text-3xl sm:text-4xl text-slate-700"></i>
-      </div>
-      
-      <div class="space-y-1 mb-8 relative z-10 w-full">
-        <p id="modal-item-rarity" class="font-bold text-sm sm:text-lg"></p>
-        <p id="modal-item-name" class="text-lg sm:text-2xl font-medium text-white line-clamp-2"></p>
-        <p id="modal-item-price" class="text-emerald-400 font-mono font-bold mt-2 text-lg sm:text-xl"></p>
-      </div>
-
-      <div class="flex gap-3 w-full relative z-10">
-        <button id="btn-modal-sell" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl font-bold transition-colors text-sm sm:text-base">
-          Продать
-        </button>
-        <button onclick="closeModal()" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-colors text-sm sm:text-base">
-          Оставить
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Крошечные стили для анимаций -->
-  <style>
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-  </style>
-
-  <!-- JAVASCRIPT ЛОГИКА -->
-  <script>
-    // --- ДАННЫЕ И НАСТРОЙКИ ---
-    const RARITIES = {
-      MIL_SPEC: { name: 'Армейское качество', color: '#4b69ff', chance: 79.92 },
-      RESTRICTED: { name: 'Запрещенное', color: '#8847ff', chance: 15.98 },
-      CLASSIFIED: { name: 'Засекреченное', color: '#d32ce6', chance: 3.2 },
-      COVERT: { name: 'Тайное', color: '#eb4b4b', chance: 0.64 },
-      GOLD: { name: 'Редкий предмет', color: '#ffd700', chance: 0.26 },
-    };
-
-    const generateSkins = (prefix) => [
-      { name: `${prefix} | Песчаная дюна`, rarity: 'MIL_SPEC', price: 0.5 },
-      { name: `${prefix} | Пиксельный камуфляж`, rarity: 'MIL_SPEC', price: 0.8 },
-      { name: `${prefix} | Африканская сетка`, rarity: 'MIL_SPEC', price: 0.3 },
-      { name: `${prefix} | Городская опасность`, rarity: 'RESTRICTED', price: 4.5 },
-      { name: `${prefix} | Падение Икара`, rarity: 'RESTRICTED', price: 8.0 },
-      { name: `${prefix} | Скоростной зверь`, rarity: 'CLASSIFIED', price: 25.0 },
-      { name: `${prefix} | Неоновый гонщик`, rarity: 'CLASSIFIED', price: 40.0 },
-      { name: `${prefix} | Азимов`, rarity: 'COVERT', price: 120.0 },
-      { name: `${prefix} | Вой`, rarity: 'COVERT', price: 350.0 },
-      { name: `★ Керамбит | Кровавая паутина`, rarity: 'GOLD', price: 1200.0 },
-      { name: `★ Спортивные перчатки | Порок`, rarity: 'GOLD', price: 1500.0 },
-    ];
-
-    const CASES = [
-      { id: 'kilowatt', name: 'Кейс «Киловатт»', price: 2.50, color: 'from-yellow-500 to-orange-600', icon: 'fa-bolt', items: generateSkins('AK-47') },
-      { id: 'dreams', name: 'Кейс «Грёзы и кошмары»', price: 1.80, color: 'from-purple-500 to-blue-600', icon: 'fa-moon', items: generateSkins('M4A1-S') },
-      { id: 'revolution', name: 'Кейс «Революция»', price: 3.00, color: 'from-red-500 to-pink-600', icon: 'fa-fist-raised', items: generateSkins('AWP') },
-      { id: 'bravo', name: 'Кейс операции «Браво»', price: 45.00, color: 'from-emerald-500 to-teal-600', icon: 'fa-star', items: generateSkins('Desert Eagle') }
-    ];
-
-    // --- СОСТОЯНИЕ ПРИЛОЖЕНИЯ ---
-    let state = {
-      balance: 100.00,
-      inventory: [],
-      currentView: 'home',
-      activeCase: null,
-      isSpinning: false,
-      lastWonItem: null
-    };
-
-    // --- ОСНОВНЫЕ ФУНКЦИИ ---
-    function updateHeader() {
-      document.getElementById('header-balance').innerText = `$${state.balance.toFixed(2)}`;
-      document.getElementById('header-inventory-count').innerText = state.inventory.length;
-    }
-
-    function switchView(viewId) {
-      if (state.isSpinning) return;
-      
-      document.getElementById('view-home').classList.add('hidden');
-      document.getElementById('view-case').classList.add('hidden');
-      document.getElementById('view-inventory').classList.add('hidden');
-      
-      document.getElementById(`view-${viewId}`).classList.remove('hidden');
-      state.currentView = viewId;
-
-      if (viewId === 'inventory') renderInventory();
-    }
-
-    // --- РЕНДЕР ГЛАВНОЙ СТРАНИЦЫ ---
-    function renderHome() {
-      const grid = document.getElementById('cases-grid');
-      grid.innerHTML = CASES.map(c => `
-        <div onclick="openCase('${c.id}')" class="group bg-slate-900 border border-slate-800 rounded-xl p-6 cursor-pointer hover:border-indigo-500/50 hover:shadow-[0_0_30px_-5px_rgba(99,102,241,0.2)] transition-all relative overflow-hidden text-center flex flex-col items-center">
-          <div class="absolute top-0 right-0 p-3 z-10">
-            <div class="bg-slate-950/80 px-3 py-1 rounded-full border border-slate-800 font-mono text-emerald-400 text-sm font-bold shadow-lg backdrop-blur-sm">
-              $${c.price.toFixed(2)}
+    <!-- Навигация -->
+    <nav class="fixed top-0 left-0 right-0 z-[100] bg-black/90 border-b border-red-600/30 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-2 cursor-pointer group" onclick="showSection('home')">
+                    <div class="w-10 h-10 bg-red-600 flex items-center justify-center rounded-lg rotate-45 group-hover:rotate-0 transition-all duration-500 shadow-[0_0_15px_rgba(220,38,38,0.5)]">
+                        <i class="fa-solid fa-bolt text-white -rotate-45 group-hover:rotate-0 transition-all"></i>
+                    </div>
+                    <span class="text-2xl font-black tracking-tighter text-white">MAJOR WIN</span>
+                </div>
+                
+                <div class="hidden md:flex items-center gap-6 text-sm font-bold uppercase tracking-widest text-gray-400">
+                    <button onclick="showSection('home')" class="nav-link hover:text-red-500 transition-colors">Кейсы</button>
+                    <button onclick="showSection('upgrades')" class="nav-link hover:text-red-500 transition-colors">Апгрейды</button>
+                    <button onclick="showSection('contracts')" class="nav-link hover:text-red-500 transition-colors">Контракты</button>
+                </div>
             </div>
-          </div>
-          <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-lg bg-gradient-to-br ${c.color} mb-4 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500 relative">
-             <i class="fa-solid ${c.icon} text-4xl sm:text-5xl text-white/50 absolute"></i>
-          </div>
-          <h3 class="text-lg sm:text-xl font-bold mb-1 group-hover:text-indigo-400 transition-colors">${c.name}</h3>
-          <p class="text-xs sm:text-sm text-slate-500">${c.items.length} предметов</p>
-        </div>
-      `).join('');
-    }
 
-    // --- ОТКРЫТИЕ КЕЙСА (Подготовка) ---
-    function openCase(caseId) {
-      state.activeCase = CASES.find(c => c.id === caseId);
-      document.getElementById('active-case-name').innerText = state.activeCase.name;
-      
-      const btnSpin = document.getElementById('btn-spin');
-      const btnSpinText = document.getElementById('btn-spin-text');
-      
-      btnSpinText.innerText = `Открыть за $${state.activeCase.price.toFixed(2)}`;
-      btnSpin.className = `flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all ${state.balance < state.activeCase.price ? 'bg-red-500/10 text-red-500 border border-red-500/20 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] hover:-translate-y-1'}`;
-      btnSpin.disabled = state.balance < state.activeCase.price;
-
-      // Очистка рулетки перед новым спином
-      document.getElementById('roulette-track').innerHTML = '<div class="w-full text-center text-slate-500 px-10">Нажмите «Открыть» чтобы начать</div>';
-      document.getElementById('roulette-track').style.transition = 'none';
-      document.getElementById('roulette-track').style.transform = 'translateX(0px)';
-
-      // Рендер возможных предметов
-      document.getElementById('case-items-grid').innerHTML = state.activeCase.items.map(item => `
-        <div class="bg-slate-900 border-b-2 rounded-lg p-3 sm:p-4 flex flex-col items-center text-center" style="border-bottom-color: ${RARITIES[item.rarity].color}">
-          <div class="w-12 h-12 sm:w-16 sm:h-16 bg-slate-800 rounded mb-2 flex items-center justify-center">
-            <i class="fa-solid fa-gun text-slate-700"></i>
-          </div>
-          <span class="text-[10px] sm:text-xs text-slate-400 mb-1">${RARITIES[item.rarity].name}</span>
-          <span class="text-xs sm:text-sm font-medium line-clamp-2">${item.name}</span>
-        </div>
-      `).join('');
-
-      switchView('case');
-    }
-
-    // --- ЛОГИКА ВЫПАДЕНИЯ ---
-    function getRandomItem(caseItems) {
-      const rand = Math.random() * 100;
-      let cumulativeChance = 0;
-      let selectedRarity = 'MIL_SPEC';
-      
-      for (const [key, rarity] of Object.entries(RARITIES)) {
-        cumulativeChance += rarity.chance;
-        if (rand <= cumulativeChance) { selectedRarity = key; break; }
-      }
-
-      const itemsOfRarity = caseItems.filter(item => item.rarity === selectedRarity);
-      if (itemsOfRarity.length === 0) return caseItems[Math.floor(Math.random() * caseItems.length)];
-      return itemsOfRarity[Math.floor(Math.random() * itemsOfRarity.length)];
-    }
-
-    // --- КРУТИМ РУЛЕТКУ ---
-    function startSpin() {
-      if (state.balance < state.activeCase.price || state.isSpinning) return;
-      
-      // Снимаем деньги
-      state.balance -= state.activeCase.price;
-      updateHeader();
-      state.isSpinning = true;
-
-      const btnSpin = document.getElementById('btn-spin');
-      btnSpin.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i> Крутим...';
-      btnSpin.classList.replace('bg-indigo-600', 'bg-slate-800');
-      btnSpin.classList.replace('hover:bg-indigo-500', 'text-slate-500');
-      btnSpin.disabled = true;
-
-      // Генерируем 70 предметов
-      const track = document.getElementById('roulette-track');
-      const items = Array.from({ length: 70 }, () => getRandomItem(state.activeCase.items));
-      const winningIndex = 55;
-      state.lastWonItem = { ...items[winningIndex], id: Date.now() };
-
-      // Отрисовка ленты
-      track.innerHTML = items.map(item => `
-        <div class="w-[120px] sm:w-[150px] mx-[2px] sm:mx-[5px] h-32 sm:h-36 bg-slate-900 border-b-4 rounded-lg flex flex-col items-center justify-center p-2 sm:p-3 shrink-0 relative overflow-hidden" style="border-bottom-color: ${RARITIES[item.rarity].color}">
-          <div class="absolute top-0 left-0 w-full h-full opacity-10" style="background-color: ${RARITIES[item.rarity].color}"></div>
-          <div class="w-12 h-10 sm:w-16 sm:h-12 bg-slate-800 rounded mb-2 flex items-center justify-center relative z-10">
-             <i class="fa-solid fa-gun text-slate-700 text-sm"></i>
-          </div>
-          <p class="text-[10px] sm:text-xs text-center font-medium line-clamp-2 z-10">${item.name}</p>
-        </div>
-      `).join('');
-
-      track.style.transition = 'none';
-      track.style.transform = 'translateX(0px)';
-      
-      // Форсируем перерисовку браузера (Reflow)
-      void track.offsetWidth;
-
-      // Запуск анимации
-      setTimeout(() => {
-        // Проверяем мобильный экран (ширина карточки меняется)
-        const isMobile = window.innerWidth < 640;
-        const itemWidth = isMobile ? 124 : 160; // ширина + margin
-        const containerCenter = track.parentElement.offsetWidth / 2;
-        const randomOffset = Math.floor(Math.random() * (itemWidth - 10)) - ((itemWidth - 10) / 2);
-        const offset = (winningIndex * itemWidth) - containerCenter + (itemWidth / 2) + randomOffset;
-        
-        track.style.transition = 'transform 6s cubic-bezier(0.15, 0.9, 0.15, 1)';
-        track.style.transform = `translateX(-${offset}px)`;
-      }, 50);
-
-      // Конец вращения
-      setTimeout(() => {
-        state.isSpinning = false;
-        
-        // Добавляем в инвентарь
-        state.inventory.unshift(state.lastWonItem);
-        updateHeader();
-        
-        // Возвращаем кнопку в исходное состояние
-        btnSpin.innerHTML = `<span id="btn-spin-text">Открыть за $${state.activeCase.price.toFixed(2)}</span>`;
-        if(state.balance >= state.activeCase.price) {
-          btnSpin.className = 'flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] hover:-translate-y-1';
-          btnSpin.disabled = false;
-        } else {
-          btnSpin.className = 'flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all bg-red-500/10 text-red-500 border border-red-500/20 cursor-not-allowed';
-        }
-
-        showWinModal();
-      }, 6200);
-    }
-
-    // --- МОДАЛЬНОЕ ОКНО ---
-    function showWinModal() {
-      const item = state.lastWonItem;
-      const r = RARITIES[item.rarity];
-      
-      document.getElementById('modal-glow').style.backgroundColor = r.color;
-      document.getElementById('modal-item-color').style.borderBottomColor = r.color;
-      document.getElementById('modal-item-rarity').innerText = r.name;
-      document.getElementById('modal-item-rarity').style.color = r.color;
-      document.getElementById('modal-item-name').innerText = item.name;
-      document.getElementById('modal-item-price').innerText = `$${item.price.toFixed(2)}`;
-      
-      // Настраиваем кнопку "Продать" на лету
-      const sellBtn = document.getElementById('btn-modal-sell');
-      sellBtn.innerText = `Продать за $${item.price.toFixed(2)}`;
-      sellBtn.onclick = () => {
-        sellItem(item.id);
-        closeModal();
-      };
-
-      const modal = document.getElementById('modal-win');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeModal() {
-      document.getElementById('modal-win').classList.add('hidden');
-      document.getElementById('modal-win').classList.remove('flex');
-    }
-
-    // --- ИНВЕНТАРЬ ---
-    function renderInventory() {
-      document.getElementById('inventory-total').innerText = state.inventory.length;
-      
-      const empty = document.getElementById('inventory-empty');
-      const grid = document.getElementById('inventory-grid');
-
-      if (state.inventory.length === 0) {
-        empty.classList.remove('hidden');
-        grid.classList.add('hidden');
-      } else {
-        empty.classList.add('hidden');
-        grid.classList.remove('hidden');
-        grid.innerHTML = state.inventory.map(item => `
-          <div class="group bg-slate-900 border border-slate-800 border-b-4 rounded-xl p-3 sm:p-4 flex flex-col items-center text-center relative hover:bg-slate-800 transition-colors" style="border-bottom-color: ${RARITIES[item.rarity].color}">
-            <div class="absolute inset-0 opacity-5" style="background-color: ${RARITIES[item.rarity].color}"></div>
-            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-950 rounded-lg mb-3 shadow-inner relative z-10 flex items-center justify-center">
-              <i class="fa-solid fa-gun text-slate-700 text-xl"></i>
+            <div class="flex items-center gap-4">
+                <div class="bg-zinc-900 border border-white/5 rounded-md px-4 py-2 flex items-center gap-3">
+                    <i class="fa-solid fa-wallet text-red-600"></i>
+                    <span id="balance-display" class="font-mono font-bold text-lg">$100.00</span>
+                </div>
+                <button onclick="showSection('profile')" class="w-12 h-12 bg-zinc-900 border border-red-600/20 rounded-full flex items-center justify-center hover:bg-red-600 transition-all group">
+                    <i class="fa-solid fa-user group-hover:scale-110"></i>
+                </button>
             </div>
-            <span class="text-[10px] sm:text-xs font-bold mb-1" style="color: ${RARITIES[item.rarity].color}">${RARITIES[item.rarity].name}</span>
-            <span class="text-xs sm:text-sm font-medium mb-4 line-clamp-2 z-10 h-8 sm:h-10 flex items-center justify-center text-white">${item.name}</span>
-            
-            <button onclick="sellItem(${item.id})" class="w-full mt-auto py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs sm:text-sm font-bold transition-colors z-10">
-              Продать $${item.price.toFixed(2)}
-            </button>
-          </div>
-        `).join('');
-      }
-    }
+        </div>
+    </nav>
 
-    // Продажа предмета
-    window.sellItem = function(id) {
-      const itemIndex = state.inventory.findIndex(i => i.id === id);
-      if (itemIndex > -1) {
-        state.balance += state.inventory[itemIndex].price;
-        state.inventory.splice(itemIndex, 1);
-        updateHeader();
+    <main class="pt-28 pb-20 max-w-7xl mx-auto px-4">
         
-        // Если мы находимся в инвентаре - перерисовываем его
-        if (state.currentView === 'inventory') {
-          renderInventory();
-        }
-        
-        // Если находимся на экране кейса и продали только что выпавший - обновляем кнопку спина (вдруг теперь хватает денег)
-        if (state.currentView === 'case' && state.activeCase) {
-           openCase(state.activeCase.id); // Переоткрываем интерфейс кейса для обновления кнопки
-        }
-      }
-    };
+        <!-- SECTION: HOME -->
+        <section id="sec-home" class="content-section animate-fade">
+            <div class="relative py-20 text-center border border-red-600/20 rounded-3xl bg-gradient-to-b from-zinc-900 to-black overflow-hidden mb-12 shadow-2xl">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-red-600/10 blur-[120px] rounded-full"></div>
+                <h1 class="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 relative z-10">
+                    ОТКРЫВАЙ КЕЙСЫ НА <span class="text-red-600">MAJOR WIN</span>
+                </h1>
+                <p class="text-gray-400 text-xl font-medium tracking-tight relative z-10">
+                    Испытай удачу у нас. У нас реальные шансы!
+                </p>
+            </div>
+            <div id="cases-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </section>
 
-    // Инициализация при загрузке страницы
-    window.onload = () => {
-      renderHome();
-      updateHeader();
-    };
+        <!-- SECTION: UPGRADES -->
+        <section id="sec-upgrades" class="content-section hidden animate-fade">
+            <div class="max-w-4xl mx-auto bg-zinc-900/50 p-8 rounded-3xl border border-white/5 text-center">
+                <h2 class="text-3xl font-black mb-8 uppercase italic">Апгрейд скина</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                    <div id="upgrade-source" class="h-64 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-center items-center justify-center cursor-pointer hover:border-red-600/50 transition-all">
+                        <p class="text-zinc-600 uppercase font-bold">Выбери скин</p>
+                    </div>
+                    <div class="flex flex-col items-center gap-4">
+                        <div id="upgrade-chance-circle" class="relative w-40 h-40 rounded-full border-8 border-zinc-800 flex items-center justify-center">
+                            <span id="upgrade-chance-text" class="text-3xl font-black">0%</span>
+                            <svg class="absolute inset-0 w-full h-full -rotate-90">
+                                <circle id="upgrade-progress" cx="80" cy="80" r="72" fill="transparent" stroke="#dc2626" stroke-width="8" stroke-dasharray="452" stroke-dashoffset="452" stroke-linecap="round"></circle>
+                            </svg>
+                        </div>
+                        <button id="btn-do-upgrade" class="w-full py-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:hover:bg-red-600 rounded-xl font-black uppercase tracking-widest transition-all">Улучшить</button>
+                    </div>
+                    <div id="upgrade-target" class="h-64 border-2 border-dashed border-zinc-800 rounded-2xl flex items-center justify-center cursor-pointer hover:border-red-600/50 transition-all overflow-hidden">
+                        <p class="text-zinc-600 uppercase font-bold">Цель апгрейда</p>
+                    </div>
+                </div>
+                <div id="upgrade-inventory" class="mt-12 grid grid-cols-4 sm:grid-cols-6 gap-2 border-t border-white/5 pt-8"></div>
+            </div>
+        </section>
 
-  </script>
+        <!-- SECTION: CONTRACTS -->
+        <section id="sec-contracts" class="content-section hidden animate-fade text-center">
+            <h2 class="text-4xl font-black mb-4 italic uppercase">Контракты обмена</h2>
+            <p class="text-zinc-500 mb-12 uppercase tracking-widest text-sm font-bold">Минимум 3 скина для запуска</p>
+            <div class="max-w-5xl mx-auto bg-zinc-900 p-10 rounded-3xl border border-red-600/20 relative">
+                <div id="contract-slots" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+                    <!-- Слоты контракта -->
+                </div>
+                <button id="btn-do-contract" class="px-12 py-5 bg-white text-black hover:bg-red-600 hover:text-white transition-all rounded-full font-black uppercase tracking-widest disabled:opacity-20">Подписать контракт</button>
+            </div>
+            <div id="contract-inventory" class="mt-12 grid grid-cols-4 sm:grid-cols-8 gap-2 max-w-5xl mx-auto"></div>
+        </section>
+
+        <!-- SECTION: PROFILE -->
+        <section id="sec-profile" class="content-section hidden animate-fade">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-zinc-900 p-8 rounded-3xl border border-white/5 h-fit">
+                    <h3 class="text-xl font-black uppercase italic mb-6">Профиль игрока</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-zinc-500 mb-2">Ваш никнейм</label>
+                            <div class="flex gap-2">
+                                <input id="profile-name-input" type="text" class="flex-1 bg-black border border-zinc-800 rounded-lg px-4 py-2 outline-none focus:border-red-600" value="Новый игрок">
+                                <button onclick="saveNick()" class="px-4 py-2 bg-red-600 rounded-lg font-bold">OK</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase font-bold text-zinc-500 mb-2">Промокод</label>
+                            <div class="flex gap-2">
+                                <input id="promo-input" type="text" class="flex-1 bg-black border border-zinc-800 rounded-lg px-4 py-2 outline-none focus:border-red-600" placeholder="MAJOR2024">
+                                <button onclick="usePromo()" class="px-4 py-2 bg-zinc-800 rounded-lg font-bold hover:bg-white hover:text-black">Ввод</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 space-y-6">
+                    <h3 class="text-2xl font-black uppercase italic flex items-center gap-3">
+                        Ваш инвентарь <span id="profile-inv-count" class="text-red-600 text-sm">0</span>
+                    </h3>
+                    <div id="profile-inventory-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: CASE DETAIL -->
+        <section id="sec-case-detail" class="content-section hidden animate-fade">
+            <div class="bg-zinc-900 border border-white/5 rounded-3xl p-8 mb-8">
+                <div id="roulette-container" class="relative h-48 bg-black rounded-2xl border-y-2 border-red-600/50 overflow-hidden mb-10">
+                    <div class="absolute top-0 bottom-0 left-1/2 w-1 bg-red-600 z-10 -translate-x-1/2 shadow-[0_0_20px_#dc2626]"></div>
+                    <div id="roulette-track" class="flex items-center absolute h-full transition-all"></div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <h2 id="case-title" class="text-4xl font-black italic uppercase mb-6 text-center"></h2>
+                    <button id="btn-spin" onclick="startSpin()" class="px-16 py-5 bg-red-600 hover:bg-red-700 text-white rounded-full font-black text-xl uppercase tracking-widest shadow-[0_10px_30px_rgba(220,38,38,0.4)] hover:-translate-y-1 transition-all">Открыть за <span id="case-price"></span></button>
+                </div>
+            </div>
+            <div id="case-loot-grid" class="grid grid-cols-2 md:grid-cols-5 gap-4"></div>
+        </section>
+
+    </main>
+
+    <!-- Modal Win -->
+    <div id="modal-win" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+        <div class="bg-zinc-900 border border-red-600/30 p-10 rounded-[40px] max-w-md w-full text-center relative overflow-hidden">
+            <div id="modal-glow" class="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 blur-[100px] opacity-40"></div>
+            <h3 class="text-zinc-500 font-bold uppercase tracking-[0.2em] mb-8">Новый предмет</h3>
+            <div class="w-48 h-48 mx-auto mb-6 bg-black rounded-3xl border border-white/5 flex items-center justify-center">
+                <i class="fa-solid fa-gun text-5xl text-zinc-800"></i>
+            </div>
+            <div id="win-rarity" class="text-xs font-black uppercase tracking-widest mb-2"></div>
+            <h2 id="win-name" class="text-2xl font-black italic mb-2"></h2>
+            <p id="win-price" class="text-red-500 font-bold text-xl mb-10"></p>
+            <div class="flex gap-4">
+                <button id="btn-win-sell" class="flex-1 py-4 bg-white text-black font-black uppercase rounded-xl hover:bg-red-600 hover:text-white transition-all">Продать</button>
+                <button onclick="closeWinModal()" class="flex-1 py-4 bg-zinc-800 font-black uppercase rounded-xl hover:bg-zinc-700 transition-all">В инвентарь</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
