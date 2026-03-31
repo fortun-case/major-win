@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     
-    <!-- Подключаем Firebase Legacy SDK (надежнее для прямых скриптов) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -35,11 +34,12 @@
 
             <div class="flex items-center gap-4">
                 <div class="bg-zinc-900/50 border border-white/5 rounded-xl px-4 py-2.5 flex items-center gap-3">
-                    <i class="fa-solid fa-wallet text-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]"></i>
+                    <i class="fa-solid fa-wallet text-red-600"></i>
                     <span id="balance-display" class="font-mono font-bold text-lg text-emerald-400">$0.00</span>
                 </div>
-                <button onclick="showSection('profile')" class="w-12 h-12 bg-zinc-900 border border-white/10 rounded-xl flex items-center justify-center hover:border-red-600 hover:bg-red-600/10 transition-all group">
-                    <i class="fa-solid fa-user text-zinc-400 group-hover:text-white"></i>
+                <button onclick="showSection('profile')" class="w-12 h-12 bg-zinc-900 border border-white/10 rounded-xl flex items-center justify-center hover:border-red-600 transition-all group overflow-hidden">
+                    <img id="user-avatar" src="" class="w-full h-full hidden object-cover">
+                    <i id="user-icon" class="fa-solid fa-user text-zinc-400 group-hover:text-white"></i>
                 </button>
             </div>
         </div>
@@ -47,38 +47,94 @@
 
     <main class="pt-32 pb-20 max-w-7xl mx-auto px-4">
         
-        <!-- ГЛАВНАЯ -->
-        <section id="sec-home" class="content-section active animate-fade">
+        <!-- ГЛАВНАЯ (КЕЙСЫ) -->
+        <section id="sec-home" class="content-section animate-fade">
             <div class="relative py-24 text-center border border-red-600/20 rounded-[40px] bg-zinc-900/20 overflow-hidden mb-16">
-                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-red-600/5 to-transparent"></div>
                 <h1 class="text-5xl md:text-8xl font-black italic tracking-tighter mb-6 relative z-10 uppercase">
                     ОТКРЫВАЙ КЕЙСЫ НА <span class="text-red-600 text-glow">MAJOR WIN</span>
                 </h1>
-                <p class="text-zinc-500 text-xl font-bold uppercase tracking-widest relative z-10">
-                    Испытай удачу у нас. У нас реальные шансы!
-                </p>
+                <p class="text-zinc-500 text-xl font-bold uppercase tracking-widest relative z-10">Испытай удачу у нас. У нас реальные шансы!</p>
             </div>
-            <div id="cases-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Сюда JS вставит кейсы -->
-            </div>
+            <div id="cases-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
         </section>
 
         <!-- АПГРЕЙДЫ -->
         <section id="sec-upgrades" class="content-section hidden animate-fade">
-            <div class="text-center py-20 bg-zinc-900/30 rounded-3xl border border-white/5">
-                <i class="fa-solid fa-rocket text-6xl text-zinc-800 mb-6"></i>
-                <h2 class="text-4xl font-black italic uppercase mb-4">Апгрейды</h2>
-                <p class="text-zinc-500">Раздел находится в разработке. Скоро здесь можно будет улучшать скины!</p>
+            <div class="max-w-5xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <!-- Левая часть: Выбор своего скина -->
+                    <div class="bg-zinc-900/50 p-8 rounded-[32px] border border-white/5">
+                        <h3 class="text-center font-black uppercase italic mb-6 text-zinc-500">Ваш предмет</h3>
+                        <div id="upgrade-source-box" class="h-64 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center transition-all">
+                            <i class="fa-solid fa-plus text-4xl text-zinc-800 mb-4"></i>
+                            <p class="text-zinc-600 font-bold uppercase text-xs">Выберите из инвентаря ниже</p>
+                        </div>
+                    </div>
+                    <!-- Правая часть: Выбор цели -->
+                    <div class="bg-zinc-900/50 p-8 rounded-[32px] border border-white/5 relative">
+                        <h3 class="text-center font-black uppercase italic mb-6 text-zinc-500">Цель апгрейда</h3>
+                        <div id="upgrade-target-box" class="h-64 border-2 border-dashed border-zinc-800 rounded-3xl flex flex-col items-center justify-center overflow-hidden">
+                            <i class="fa-solid fa-crosshairs text-4xl text-zinc-800 mb-4"></i>
+                            <p class="text-zinc-600 font-bold uppercase text-xs">Выберите предмет справа</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Центр: Управление шансом -->
+                <div class="bg-black border border-red-600/20 p-10 rounded-[40px] flex flex-col items-center mb-12 shadow-2xl relative overflow-hidden">
+                    <div id="upgrade-circle-container" class="relative w-48 h-48 mb-8">
+                        <svg class="w-full h-full -rotate-90">
+                            <circle cx="96" cy="96" r="88" fill="transparent" stroke="#18181b" stroke-width="12"></circle>
+                            <circle id="upgrade-chance-bar" cx="96" cy="96" r="88" fill="transparent" stroke="#dc2626" stroke-width="12" stroke-dasharray="553" stroke-dashoffset="553" stroke-linecap="round" class="transition-all duration-500"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="upgrade-chance-val" class="text-4xl font-black italic">0%</span>
+                            <span class="text-[10px] font-black uppercase text-zinc-500">Шанс</span>
+                        </div>
+                        <!-- Стрелка рулетки -->
+                        <div id="upgrade-arrow" class="absolute top-0 left-1/2 -translate-x-1/2 -mt-2 w-1 h-6 bg-white z-20 hidden"></div>
+                    </div>
+                    <button id="btn-upgrade-start" onclick="executeUpgrade()" class="px-16 py-5 bg-red-600 rounded-2xl font-black uppercase italic tracking-widest disabled:opacity-20 hover:bg-red-500 transition-all">Начать апгрейд</button>
+                </div>
+
+                <!-- Выбор предметов -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[400px]">
+                    <div class="bg-zinc-900/30 p-4 rounded-2xl border border-white/5 overflow-y-auto">
+                        <h4 class="text-xs font-black uppercase text-zinc-600 mb-4">Ваш инвентарь</h4>
+                        <div id="upgrade-inv-list" class="grid grid-cols-3 gap-3"></div>
+                    </div>
+                    <div class="bg-zinc-900/30 p-4 rounded-2xl border border-white/5 overflow-y-auto">
+                        <h4 class="text-xs font-black uppercase text-zinc-600 mb-4">Магазин апгрейдов</h4>
+                        <div id="upgrade-shop-list" class="grid grid-cols-3 gap-3"></div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- КОНТРАКТЫ -->
         <section id="sec-contracts" class="content-section hidden animate-fade">
-            <div class="text-center py-20 bg-zinc-900/30 rounded-3xl border border-white/5">
-                <i class="fa-solid fa-file-contract text-6xl text-zinc-800 mb-6"></i>
-                <h2 class="text-4xl font-black italic uppercase mb-4">Контракты</h2>
-                <p class="text-zinc-500">Раздел находится в разработке. Готовьте свои дешевые скины!</p>
+            <div class="max-w-4xl mx-auto bg-zinc-900/40 p-10 rounded-[40px] border border-white/5">
+                <div class="text-center mb-10">
+                    <h2 class="text-4xl font-black italic uppercase mb-2">Контракт обмена</h2>
+                    <p class="text-zinc-500 text-sm font-bold uppercase tracking-widest">Минимум 3 предмета, максимум 10</p>
+                </div>
+                
+                <div id="contract-slots" class="grid grid-cols-5 gap-4 mb-10 min-h-[120px] p-6 bg-black/40 rounded-3xl border border-dashed border-zinc-800">
+                    <!-- Слоты контракта -->
+                </div>
+
+                <div class="flex flex-col items-center gap-6">
+                    <div class="text-center">
+                        <p class="text-zinc-500 text-[10px] font-black uppercase mb-1">Суммарная стоимость</p>
+                        <p id="contract-total-value" class="text-3xl font-black italic text-emerald-400">$0.00</p>
+                    </div>
+                    <button id="btn-contract-start" onclick="executeContract()" class="px-16 py-5 bg-white text-black hover:bg-red-600 hover:text-white transition-all rounded-2xl font-black uppercase italic tracking-widest disabled:opacity-20">Подписать контракт</button>
+                </div>
+
+                <div class="mt-12 border-t border-white/5 pt-10">
+                    <h4 class="text-xs font-black uppercase text-zinc-600 mb-6 text-center">Выберите предметы для контракта</h4>
+                    <div id="contract-inv-list" class="grid grid-cols-4 sm:grid-cols-6 gap-3"></div>
+                </div>
             </div>
         </section>
 
@@ -86,20 +142,28 @@
         <section id="sec-profile" class="content-section hidden animate-fade">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div class="bg-zinc-900/80 p-8 rounded-3xl border border-white/5 h-fit shadow-2xl">
-                    <h3 class="text-xl font-black uppercase italic mb-8 border-l-4 border-red-600 pl-4">Настройки профиля</h3>
+                    <h3 class="text-xl font-black uppercase italic mb-8 border-l-4 border-red-600 pl-4">Личный кабинет</h3>
+                    
+                    <div id="auth-box" class="mb-10 p-6 bg-black/50 rounded-2xl border border-white/5 text-center">
+                        <div id="user-logged-out">
+                            <p class="text-zinc-500 text-xs mb-4 font-bold uppercase">Войдите, чтобы сохранить прогресс</p>
+                            <button onclick="loginGoogle()" class="w-full py-4 bg-white text-black font-black uppercase rounded-xl hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-3">
+                                <i class="fa-brands fa-google"></i> Google Login
+                            </button>
+                        </div>
+                        <div id="user-logged-in" class="hidden">
+                            <p class="text-emerald-400 text-xs mb-2 font-black uppercase tracking-widest">Авторизован</p>
+                            <p id="user-email" class="text-zinc-400 text-xs mb-6 truncate"></p>
+                            <button onclick="logout()" class="text-zinc-600 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-all">Выйти из аккаунта</button>
+                        </div>
+                    </div>
+
                     <div class="space-y-8">
                         <div>
-                            <label class="block text-[10px] uppercase font-black text-zinc-500 mb-3 tracking-widest">Ваш позывной</label>
+                            <label class="block text-[10px] uppercase font-black text-zinc-500 mb-3 tracking-widest">Никнейм</label>
                             <div class="flex gap-2">
-                                <input id="profile-name-input" type="text" class="flex-1 bg-black border border-white/5 rounded-xl px-5 py-3 outline-none focus:border-red-600 transition-all font-bold" placeholder="Введите ник">
-                                <button onclick="saveNick()" class="px-6 py-3 bg-red-600 rounded-xl font-black uppercase text-xs hover:bg-red-500 transition-all">Save</button>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] uppercase font-black text-zinc-500 mb-3 tracking-widest">Промокод</label>
-                            <div class="flex gap-2">
-                                <input id="promo-input" type="text" class="flex-1 bg-black border border-white/5 rounded-xl px-5 py-3 outline-none focus:border-red-600 transition-all font-bold" placeholder="MAJOR2026">
-                                <button onclick="usePromo()" class="px-6 py-3 bg-zinc-800 rounded-xl font-black uppercase text-xs hover:bg-white hover:text-black transition-all">Apply</button>
+                                <input id="profile-name-input" type="text" class="flex-1 bg-black border border-white/5 rounded-xl px-5 py-3 outline-none focus:border-red-600 transition-all font-bold">
+                                <button onclick="saveNick()" class="px-6 py-3 bg-red-600 rounded-xl font-black uppercase text-xs">Save</button>
                             </div>
                         </div>
                     </div>
@@ -109,57 +173,45 @@
                         <h3 class="text-3xl font-black uppercase italic">Ваш склад</h3>
                         <span id="profile-inv-count" class="bg-red-600 px-4 py-1 rounded-full text-sm font-black">0</span>
                     </div>
-                    <div id="profile-inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        <!-- Инвентарь -->
-                    </div>
+                    <div id="profile-inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
                 </div>
             </div>
         </section>
 
-        <!-- ДЕТАЛИ КЕЙСА (РУЛЕТКА) -->
+        <!-- КЕЙС -->
         <section id="sec-case-detail" class="content-section hidden animate-fade">
             <button onclick="showSection('home')" class="mb-8 flex items-center gap-2 text-zinc-500 hover:text-white uppercase font-black text-xs tracking-widest transition-all">
-                <i class="fa-solid fa-chevron-left"></i> Назад в лобби
+                <i class="fa-solid fa-chevron-left"></i> Назад
             </button>
-            
-            <div class="bg-zinc-900/50 border border-white/5 rounded-[40px] p-6 md:p-12 shadow-2xl">
+            <div class="bg-zinc-900/50 border border-white/5 rounded-[40px] p-6 md:p-12">
                 <div id="roulette-container" class="relative h-48 md:h-56 bg-black rounded-3xl border-y-2 border-red-600/30 overflow-hidden mb-12">
-                    <div class="absolute top-0 bottom-0 left-1/2 w-1 bg-red-600 z-10 -translate-x-1/2 shadow-[0_0_30px_#dc2626]"></div>
-                    <div id="roulette-track" class="flex items-center absolute h-full will-change-transform"></div>
+                    <div class="absolute top-0 bottom-0 left-1/2 w-1 bg-red-600 z-10 -translate-x-1/2"></div>
+                    <div id="roulette-track" class="flex items-center absolute h-full"></div>
                 </div>
-                
                 <div class="flex flex-col items-center">
-                    <h2 id="case-title" class="text-4xl md:text-6xl font-black italic uppercase mb-8 text-center tracking-tighter"></h2>
-                    <button id="btn-spin" onclick="startSpin()" class="group relative px-20 py-6 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-black text-2xl uppercase tracking-widest transition-all shadow-[0_20px_50px_rgba(220,38,38,0.3)]">
-                        <span id="spin-label">Открыть за <span id="case-price"></span></span>
-                    </button>
+                    <h2 id="case-title" class="text-4xl md:text-6xl font-black italic uppercase mb-8"></h2>
+                    <button id="btn-spin" onclick="startSpin()" class="px-20 py-6 bg-red-600 text-white rounded-2xl font-black text-2xl uppercase italic tracking-widest shadow-2xl">Открыть за <span id="case-price"></span></button>
                 </div>
             </div>
-            
-            <div class="mt-16">
-                <h3 class="text-zinc-600 font-black uppercase tracking-[0.3em] text-center mb-10 text-sm">Содержимое контейнера</h3>
-                <div id="case-loot-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
-            </div>
+            <div id="case-loot-grid" class="grid grid-cols-2 md:grid-cols-6 gap-4 mt-16"></div>
         </section>
 
     </main>
 
-    <!-- Выигрыш -->
+    <!-- Modal Win -->
     <div id="modal-win" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 bg-black/98 backdrop-blur-2xl">
-        <div class="bg-zinc-900 border border-white/5 p-10 rounded-[50px] max-w-md w-full text-center relative overflow-hidden shadow-[0_0_100px_rgba(0,0,0,1)]">
+        <div class="bg-zinc-900 border border-white/5 p-10 rounded-[50px] max-w-md w-full text-center relative overflow-hidden">
             <div id="modal-glow" class="absolute -top-32 left-1/2 -translate-x-1/2 w-80 h-80 blur-[120px] opacity-30"></div>
-            <div class="relative z-10">
-                <h3 class="text-zinc-500 font-black uppercase tracking-[0.4em] mb-12 text-xs">Получен предмет</h3>
-                <div class="w-56 h-56 mx-auto mb-8 bg-black rounded-[40px] border border-white/5 flex items-center justify-center shadow-inner">
-                    <i class="fa-solid fa-gun text-6xl text-zinc-800"></i>
-                </div>
-                <div id="win-rarity" class="text-[10px] font-black uppercase tracking-[0.3em] mb-3"></div>
-                <h2 id="win-name" class="text-3xl font-black italic mb-2 tracking-tight"></h2>
-                <p id="win-price" class="text-emerald-400 font-mono font-bold text-2xl mb-12"></p>
-                <div class="grid grid-cols-1 gap-4">
-                    <button id="btn-win-sell" class="w-full py-5 bg-white text-black font-black uppercase rounded-2xl hover:bg-red-600 hover:text-white transition-all tracking-widest">Продать сейчас</button>
-                    <button onclick="closeWinModal()" class="w-full py-5 bg-zinc-800 text-zinc-400 font-black uppercase rounded-2xl hover:bg-zinc-700 hover:text-white transition-all tracking-widest text-xs">В инвентарь</button>
-                </div>
+            <h3 class="text-zinc-500 font-black uppercase mb-12 text-xs">Получен предмет</h3>
+            <div class="w-48 h-48 mx-auto mb-8 bg-black rounded-[40px] flex items-center justify-center shadow-inner">
+                <i class="fa-solid fa-gun text-5xl text-zinc-800"></i>
+            </div>
+            <div id="win-rarity" class="text-[10px] font-black uppercase mb-3"></div>
+            <h2 id="win-name" class="text-2xl font-black italic mb-10 tracking-tight"></h2>
+            <p id="win-price" class="text-emerald-400 font-bold text-2xl mb-12"></p>
+            <div class="grid grid-cols-1 gap-4">
+                <button id="btn-win-sell" class="w-full py-5 bg-white text-black font-black uppercase rounded-2xl">Продать</button>
+                <button onclick="closeWinModal()" class="w-full py-5 bg-zinc-800 text-zinc-500 font-black uppercase rounded-2xl">В инвентарь</button>
             </div>
         </div>
     </div>
