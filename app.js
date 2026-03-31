@@ -22,27 +22,32 @@ const roulette = document.getElementById('roulette');
 const openBtn = document.getElementById('open-btn');
 const balanceDisplay = document.getElementById('balance');
 
-// 1. Загрузка всех скинов CS2 через API
+// 1. Загрузка всех скинов (Используем другой надежный API)
 async function loadSkins() {
     try {
+        // Этот API отдает данные в правильном формате HTTPS
         const response = await fetch('https://bymykel.github.io/CSGO-API/api/ru/skins.json');
         const data = await response.json();
-        allSkins = data.filter(s => s.image && s.name);
-        console.log("Скины загружены:", allSkins.length);
+        
+        // Фильтруем скины, оставляя только те, у которых есть картинка
+        allSkins = data.filter(s => s.image && s.name && s.rarity);
+        
+        console.log("Скинов загружено:", allSkins.length);
         renderInitialList();
     } catch (e) {
-        console.error("Ошибка API:", e);
+        console.error("Ошибка загрузки API:", e);
+        balanceDisplay.innerText = "Ошибка загрузки данных!";
     }
 }
 
-// 2. Инициализация баланса из Firebase
+// 2. Баланс
 async function initBalance() {
     const balanceRef = ref(db, 'user/balance');
     const snapshot = await get(balanceRef);
     if (snapshot.exists()) {
         userBalance = snapshot.val();
     } else {
-        userBalance = 10000; // Подарок при первом входе
+        userBalance = 10000;
         await set(balanceRef, userBalance);
     }
     updateBalanceUI();
@@ -52,25 +57,42 @@ function updateBalanceUI() {
     balanceDisplay.innerText = `Баланс: ${userBalance.toFixed(0)}$`;
 }
 
-// 3. Создание ленты рулетки
+// 3. Создание карточки скина
+function createSkinCard(skin) {
+    const div = document.createElement('div');
+    div.className = "item";
+    // Используем цвет редкости из API
+    const color = skin.rarity.color || '#fff';
+    div.style.borderBottom = `4px solid ${color}`;
+    
+    // Очищаем название от лишних слов
+    const shortName = skin.name.replace("Skins | ", "");
+    
+    div.innerHTML = `
+        <img src="${skin.image}" onerror="this.src='https://via.placeholder.com/100?text=No+Image'">
+        <p title="${shortName}">${shortName}</p>
+    `;
+    return div;
+}
+
+// 4. Отрисовка ленты
 function renderInitialList() {
     roulette.innerHTML = "";
     roulette.style.transition = "none";
     roulette.style.transform = "translateX(0)";
     
+    if (allSkins.length === 0) return;
+
     for (let i = 0; i < 60; i++) {
-        const skin = allSkins[Math.floor(Math.random() * allSkins.length)];
-        const div = document.createElement('div');
-        div.className = "item";
-        div.style.borderBottom = `4px solid ${skin.rarity.color || '#fff'}`;
-        div.innerHTML = `<img src="${skin.image}"><p>${skin.name}</p>`;
-        roulette.appendChild(div);
+        const randomSkin = allSkins[Math.floor(Math.random() * allSkins.length)];
+        roulette.appendChild(createSkinCard(randomSkin));
     }
 }
 
-// 4. Логика открытия
+// 5. Логика кнопки
 openBtn.onclick = async () => {
-    if (userBalance < CASE_PRICE) return alert("Нужно больше золота! (Баланс пуст)");
+    if (allSkins.length === 0) return alert("Подождите, скины еще загружаются...");
+    if (userBalance < CASE_PRICE) return alert("Недостаточно средств!");
 
     openBtn.disabled = true;
     userBalance -= CASE_PRICE;
@@ -79,34 +101,34 @@ openBtn.onclick = async () => {
 
     renderInitialList();
     
-    const winIndex = 45; // Предмет, на котором остановимся
+    const winIndex = 45; 
     const winSkin = allSkins[Math.floor(Math.random() * allSkins.length)];
     
-    // Заменяем предмет в ленте на наш выигрышный
+    // Подменяем выигрышный элемент
     const winCard = roulette.children[winIndex];
+    const color = winSkin.rarity.color || '#fff';
+    winCard.style.borderBottom = `5px solid ${color}`;
     winCard.innerHTML = `<img src="${winSkin.image}"><p>${winSkin.name}</p>`;
-    winCard.style.borderBottom = `5px solid ${winSkin.rarity.color}`;
 
     setTimeout(() => {
         roulette.style.transition = "transform 5s cubic-bezier(0.1, 0, 0.1, 1)";
         const itemWidth = 140; // 130px + 10px margin
-        const centerOffset = (roulette.parentElement.offsetWidth / 2);
-        const targetPos = (winIndex * itemWidth) + (itemWidth / 2) - centerOffset;
+        const containerWidth = roulette.parentElement.offsetWidth;
+        const targetPos = (winIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
         roulette.style.transform = `translateX(-${targetPos}px)`;
     }, 100);
 
-    // Сохранение результата
     setTimeout(async () => {
         await push(ref(db, 'history'), { 
             name: winSkin.name, 
             img: winSkin.image, 
-            color: winSkin.rarity.color 
+            color: color 
         });
         openBtn.disabled = false;
     }, 5500);
 };
 
-// 5. Обновление истории в реальном времени
+// 6. История
 onValue(query(ref(db, 'history'), limitToLast(12)), (snapshot) => {
     const historyDiv = document.getElementById('history');
     historyDiv.innerHTML = "";
@@ -114,7 +136,7 @@ onValue(query(ref(db, 'history'), limitToLast(12)), (snapshot) => {
         const data = child.val();
         const div = document.createElement('div');
         div.className = "history-item";
-        div.style.border = `1px solid ${data.color}`;
+        div.style.borderBottom = `3px solid ${data.color}`;
         div.innerHTML = `<img src="${data.img}" title="${data.name}">`;
         historyDiv.prepend(div);
     });
