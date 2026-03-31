@@ -1,58 +1,381 @@
-/* Стилизация скроллбаров */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #050505; }
-::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 10px; }
+// --- CONFIG ---
+const firebaseConfig = {
+    apiKey: "AIzaSyA-8Htang_pmMugvnekBa2s4akqHD7fGYU",
+    authDomain: "major-win-b2255.firebaseapp.com",
+    databaseURL: "https://major-win-b2255-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "major-win-b2255",
+    storageBucket: "major-win-b2255.firebasestorage.app",
+    messagingSenderId: "1088188197034",
+    appId: "1:1088188197034:web:57e71de855ec78b32c88d3"
+};
 
-/* Анимации */
-@keyframes fade {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// --- STATE ---
+let state = {
+    user: null,
+    balance: 100.00,
+    inventory: [],
+    name: "Новый игрок",
+    isSpinning: false,
+    upgradeSource: null,
+    upgradeTarget: null,
+    contractItems: []
+};
+
+const RARITIES = {
+    MIL_SPEC: { name: 'Армейское', color: '#4b69ff', chance: 75 },
+    RESTRICTED: { name: 'Запрещенное', color: '#8847ff', chance: 15 },
+    CLASSIFIED: { name: 'Засекреченное', color: '#d32ce6', chance: 7 },
+    COVERT: { name: 'Тайное', color: '#eb4b4b', chance: 2.5 },
+    GOLD: { name: '★ Редкое', color: '#ffd700', chance: 0.5 },
+};
+
+const ITEMS = {
+    ak47: { id: 'ak47', name: "AK-47 | Ледяной уголь", price: 15.5, rarity: "CLASSIFIED" },
+    m4a4: { id: 'm4a4', name: "M4A4 | Тени", price: 5.2, rarity: "RESTRICTED" },
+    awp: { id: 'awp', name: "AWP | Градиент", price: 1400.0, rarity: "COVERT" },
+    usp: { id: 'usp', name: "USP-S | Сайрекс", price: 3.1, rarity: "MIL_SPEC" },
+    knife: { id: 'knife', name: "★ Нож-бабочка | Допплер", price: 2800.0, rarity: "GOLD" },
+    deagle: { id: 'deagle', name: "Desert Eagle | Пламя", price: 550.0, rarity: "COVERT" },
+    glock: { id: 'glock', name: "Glock-18 | Дух воды", price: 8.4, rarity: "RESTRICTED" }
+};
+
+const CASES = [
+    { id: 'kilowatt', name: 'Кейс «Киловатт»', price: 2.5, color: 'from-yellow-600', items: ['usp', 'm4a4', 'glock', 'ak47'] },
+    { id: 'revolution', name: 'Кейс «Революция»', price: 3.0, color: 'from-red-600', items: ['glock', 'ak47', 'deagle', 'awp'] },
+    { id: 'knife_case', name: 'КЕЙС С НОЖОМ', price: 250.0, color: 'from-amber-500', items: ['ak47', 'awp', 'knife'] }
+];
+
+// --- CORE ---
+
+function showSection(id) {
+    if (state.isSpinning) return;
+    document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+    document.getElementById(`sec-${id}`).classList.remove('hidden');
+    
+    if (id === 'home') renderHome();
+    if (id === 'profile') renderProfile();
+    if (id === 'upgrades') renderUpgrades();
+    if (id === 'contracts') renderContracts();
 }
 
-.animate-fade { animation: fade 0.4s ease-out forwards; }
-
-.nav-link {
-    position: relative;
-    padding-bottom: 4px;
+function updateUI() {
+    document.getElementById('balance-display').innerText = `$${state.balance.toFixed(2)}`;
 }
 
-.nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: #dc2626;
-    transition: width 0.3s ease;
+function saveToDB() {
+    if (!state.user) return;
+    db.ref('users/' + state.user.uid).update({
+        name: state.name,
+        balance: state.balance,
+        inventory: state.inventory
+    });
 }
 
-.nav-link:hover::after { width: 100%; }
-
-/* Элементы скинов */
-.skin-card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+// --- AUTH ---
+function loginGoogle() {
+    auth.signInWithPopup(googleProvider).catch(e => alert(e.message));
 }
 
-.skin-card:hover {
-    border-color: rgba(220, 38, 38, 0.4);
-    background: rgba(220, 38, 38, 0.05);
+function logout() {
+    auth.signOut().then(() => location.reload());
 }
 
-/* Колесо апгрейда */
-#upgrade-progress {
-    transition: stroke-dashoffset 0.5s ease;
+auth.onAuthStateChanged(user => {
+    if (user) {
+        state.user = user;
+        document.getElementById('user-logged-out').classList.add('hidden');
+        document.getElementById('user-logged-in').classList.remove('hidden');
+        document.getElementById('user-email').innerText = user.email;
+        document.getElementById('user-avatar').src = user.photoURL;
+        document.getElementById('user-avatar').classList.remove('hidden');
+        document.getElementById('user-icon').classList.add('hidden');
+
+        db.ref('users/' + user.uid).on('value', snap => {
+            const data = snap.val();
+            if (data) {
+                state.balance = data.balance ?? 100.00;
+                state.inventory = data.inventory || [];
+                state.name = data.name || user.displayName || "Major Player";
+                updateUI();
+                renderHome();
+            } else {
+                saveToDB();
+            }
+        });
+    } else {
+        auth.signInAnonymously();
+    }
+});
+
+// --- UPGRADES LOGIC ---
+function renderUpgrades() {
+    const invList = document.getElementById('upgrade-inv-list');
+    const shopList = document.getElementById('upgrade-shop-list');
+    
+    invList.innerHTML = state.inventory.map((item, idx) => `
+        <div onclick="selectUpgradeSource(${idx})" class="bg-black/50 p-2 rounded-xl border border-white/5 text-center cursor-pointer hover:border-red-600 transition-all">
+            <div class="text-[8px] font-black uppercase mb-1" style="color: ${RARITIES[item.rarity].color}">${RARITIES[item.rarity].name}</div>
+            <div class="text-[9px] font-bold h-6 overflow-hidden">$${item.price}</div>
+        </div>
+    `).join('');
+
+    shopList.innerHTML = Object.values(ITEMS).map(item => `
+        <div onclick="selectUpgradeTarget('${item.id}')" class="bg-black/50 p-2 rounded-xl border border-white/5 text-center cursor-pointer hover:border-emerald-600 transition-all">
+            <div class="text-[8px] font-black uppercase mb-1" style="color: ${RARITIES[item.rarity].color}">${RARITIES[item.rarity].name}</div>
+            <div class="text-[9px] font-bold h-6 overflow-hidden">$${item.price}</div>
+        </div>
+    `).join('');
+    
+    updateUpgradeChance();
 }
 
-/* Эффекты свечения редкостей */
-.rarity-MIL_SPEC { color: #4b69ff; text-shadow: 0 0 10px rgba(75, 105, 255, 0.3); }
-.rarity-RESTRICTED { color: #8847ff; text-shadow: 0 0 10px rgba(136, 71, 255, 0.3); }
-.rarity-CLASSIFIED { color: #d32ce6; text-shadow: 0 0 10px rgba(211, 44, 230, 0.3); }
-.rarity-COVERT { color: #eb4b4b; text-shadow: 0 0 10px rgba(235, 75, 75, 0.3); }
-.rarity-GOLD { color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
-
-/* Мобильная адаптация */
-@media (max-width: 640px) {
-    h1 { font-size: 2.5rem !important; }
+function selectUpgradeSource(idx) {
+    state.upgradeSource = { ...state.inventory[idx], index: idx };
+    document.getElementById('upgrade-source-box').innerHTML = `
+        <div class="text-center">
+            <div class="text-xs font-black" style="color: ${RARITIES[state.upgradeSource.rarity].color}">${state.upgradeSource.name}</div>
+            <div class="text-xl font-black italic">$${state.upgradeSource.price}</div>
+        </div>
+    `;
+    updateUpgradeChance();
 }
+
+function selectUpgradeTarget(id) {
+    state.upgradeTarget = ITEMS[id];
+    document.getElementById('upgrade-target-box').innerHTML = `
+        <div class="text-center">
+            <div class="text-xs font-black" style="color: ${RARITIES[state.upgradeTarget.rarity].color}">${state.upgradeTarget.name}</div>
+            <div class="text-xl font-black italic text-emerald-400">$${state.upgradeTarget.price}</div>
+        </div>
+    `;
+    updateUpgradeChance();
+}
+
+function updateUpgradeChance() {
+    if (!state.upgradeSource || !state.upgradeTarget) return;
+    
+    // Формула шанса: (Стоимость_своего / Стоимость_цели) * 0.95 (комиссия 5%)
+    let chance = (state.upgradeSource.price / state.upgradeTarget.price) * 95;
+    if (chance > 95) chance = 95; // Макс шанс 95%
+    if (chance < 0.1) chance = 0.1;
+
+    document.getElementById('upgrade-chance-val').innerText = chance.toFixed(1) + '%';
+    const offset = 553 - (553 * chance) / 100;
+    document.getElementById('upgrade-chance-bar').style.strokeDashoffset = offset;
+    state.currentUpgradeChance = chance;
+}
+
+function executeUpgrade() {
+    if (!state.upgradeSource || !state.upgradeTarget || state.isSpinning) return;
+    
+    state.isSpinning = true;
+    const arrow = document.getElementById('upgrade-arrow');
+    const circle = document.getElementById('upgrade-circle-container');
+    arrow.classList.remove('hidden');
+    
+    // Вращение
+    const spins = 5 + Math.random() * 5;
+    const finalRotate = spins * 360 + (Math.random() * 360);
+    circle.style.transition = 'transform 4s cubic-bezier(0.1, 0.8, 0.1, 1)';
+    circle.style.transform = `rotate(${finalRotate}px)`; // Это визуальный эффект
+
+    setTimeout(() => {
+        const roll = Math.random() * 100;
+        if (roll <= state.currentUpgradeChance) {
+            // WIN
+            state.inventory.splice(state.upgradeSource.index, 1);
+            state.inventory.unshift({ ...state.upgradeTarget, id: Date.now() });
+            alert("УСПЕХ! Скин получен.");
+        } else {
+            // FAIL
+            state.inventory.splice(state.upgradeSource.index, 1);
+            alert("НЕУДАЧА! Предмет утерян.");
+        }
+        
+        state.isSpinning = false;
+        state.upgradeSource = null;
+        state.upgradeTarget = null;
+        saveToDB();
+        renderUpgrades();
+        showSection('upgrades');
+    }, 4500);
+}
+
+// --- CONTRACTS LOGIC ---
+function renderContracts() {
+    const invList = document.getElementById('contract-inv-list');
+    const slots = document.getElementById('contract-slots');
+    
+    invList.innerHTML = state.inventory.map((item, idx) => {
+        const isSelected = state.contractItems.find(it => it.originalIdx === idx);
+        return `
+            <div onclick="toggleContractItem(${idx})" class="bg-black/50 p-3 rounded-xl border ${isSelected ? 'border-red-600' : 'border-white/5'} text-center cursor-pointer transition-all">
+                <div class="text-[9px] font-bold">$${item.price}</div>
+            </div>
+        `;
+    }).join('');
+
+    slots.innerHTML = state.contractItems.map(item => `
+        <div class="bg-red-600/10 border border-red-600/30 p-2 rounded-xl text-center text-[10px] font-bold">
+            $${item.price}
+        </div>
+    `).join('');
+
+    const total = state.contractItems.reduce((acc, it) => acc + it.price, 0);
+    document.getElementById('contract-total-value').innerText = `$${total.toFixed(2)}`;
+    document.getElementById('btn-contract-start').disabled = (state.contractItems.length < 3);
+}
+
+function toggleContractItem(idx) {
+    const foundIdx = state.contractItems.findIndex(it => it.originalIdx === idx);
+    if (foundIdx > -1) {
+        state.contractItems.splice(foundIdx, 1);
+    } else {
+        if (state.contractItems.length >= 10) return;
+        state.contractItems.push({ ...state.inventory[idx], originalIdx: idx });
+    }
+    renderContracts();
+}
+
+function executeContract() {
+    if (state.contractItems.length < 3 || state.isSpinning) return;
+    
+    state.isSpinning = true;
+    const totalValue = state.contractItems.reduce((acc, it) => acc + it.price, 0);
+    
+    // Логика: получаем предмет стоимостью от 80% до 200% от суммы
+    const rewardValue = totalValue * (0.8 + Math.random() * 1.2);
+    
+    // Ищем ближайший предмет по цене в пуле
+    const allItems = Object.values(ITEMS);
+    const rewardItem = allItems.reduce((prev, curr) => {
+        return (Math.abs(curr.price - rewardValue) < Math.abs(prev.price - rewardValue) ? curr : prev);
+    });
+
+    // Удаляем старые (важно удалять с конца, чтобы индексы не плыли, или просто фильтром)
+    const indicesToRemove = state.contractItems.map(it => it.originalIdx).sort((a,b) => b-a);
+    indicesToRemove.forEach(idx => state.inventory.splice(idx, 1));
+
+    setTimeout(() => {
+        state.inventory.unshift({ ...rewardItem, id: Date.now() });
+        state.contractItems = [];
+        state.isSpinning = false;
+        showWinModal(rewardItem);
+        saveToDB();
+        renderContracts();
+    }, 1500);
+}
+
+// --- CASE ENGINE (STABLE) ---
+function renderHome() {
+    const grid = document.getElementById('cases-grid');
+    grid.innerHTML = CASES.map(c => `
+        <div onclick="openCaseDetail('${c.id}')" class="group bg-zinc-900 border border-white/5 rounded-[32px] p-10 cursor-pointer hover:border-red-600 transition-all text-center">
+            <div class="w-32 h-32 mx-auto rounded-3xl bg-gradient-to-br ${c.color} to-black mb-8 flex items-center justify-center">
+                <i class="fa-solid fa-box-open text-5xl text-white/20"></i>
+            </div>
+            <h3 class="text-2xl font-black italic uppercase italic tracking-tighter">${c.name}</h3>
+            <p class="text-emerald-400 font-mono font-bold mt-4">$${c.price.toFixed(2)}</p>
+        </div>
+    `).join('');
+}
+
+function openCaseDetail(id) {
+    state.currentCase = CASES.find(c => c.id === id);
+    document.getElementById('case-title').innerText = state.currentCase.name;
+    document.getElementById('case-price').innerText = `$${state.currentCase.price.toFixed(2)}`;
+    
+    const lootGrid = document.getElementById('case-loot-grid');
+    lootGrid.innerHTML = state.currentCase.items.map(itemId => {
+        const item = ITEMS[itemId];
+        return `<div class="bg-zinc-900 border-b-2 p-4 rounded-xl text-center" style="border-bottom-color: ${RARITIES[item.rarity].color}">
+            <div class="text-[9px] font-black uppercase" style="color: ${RARITIES[item.rarity].color}">${RARITIES[item.rarity].name}</div>
+            <div class="text-[11px] font-bold truncate">${item.name}</div>
+        </div>`;
+    }).join('');
+    
+    showSection('case-detail');
+}
+
+function startSpin() {
+    if (state.isSpinning || state.balance < state.currentCase.price) return;
+    state.balance -= state.currentCase.price;
+    state.isSpinning = true;
+    updateUI();
+
+    const track = document.getElementById('roulette-track');
+    const winningIndex = 40;
+    const pool = Array.from({length: 50}, () => ITEMS[state.currentCase.items[Math.floor(Math.random()*state.currentCase.items.length)]]);
+    const wonItem = pool[winningIndex];
+
+    track.innerHTML = pool.map(item => `
+        <div class="w-[160px] h-32 bg-zinc-900 border-b-4 mx-1 rounded-2xl flex flex-col items-center justify-center p-4 shrink-0" style="border-bottom-color: ${RARITIES[item.rarity].color}">
+            <i class="fa-solid fa-gun text-zinc-800 text-2xl"></i>
+            <p class="text-[10px] text-center font-black uppercase mt-2">${item.name}</p>
+        </div>
+    `).join('');
+
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0px)';
+    
+    setTimeout(() => {
+        const offset = (winningIndex * 168) - (track.parentElement.offsetWidth / 2) + 84;
+        track.style.transition = 'transform 6s cubic-bezier(0.1, 0.8, 0.1, 1)';
+        track.style.transform = `translateX(-${offset}px)`;
+    }, 50);
+
+    setTimeout(() => {
+        state.isSpinning = false;
+        state.inventory.unshift({ ...wonItem, id: Date.now() });
+        showWinModal(wonItem);
+        saveToDB();
+    }, 6200);
+}
+
+function showWinModal(item) {
+    const modal = document.getElementById('modal-win');
+    document.getElementById('modal-glow').style.backgroundColor = RARITIES[item.rarity].color;
+    document.getElementById('win-rarity').innerText = RARITIES[item.rarity].name;
+    document.getElementById('win-rarity').style.color = RARITIES[item.rarity].color;
+    document.getElementById('win-name').innerText = item.name;
+    document.getElementById('win-price').innerText = `$${item.price.toFixed(2)}`;
+    
+    document.getElementById('btn-win-sell').onclick = () => {
+        state.balance += item.price;
+        state.inventory.shift();
+        saveToDB();
+        closeWinModal();
+    };
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeWinModal() {
+    document.getElementById('modal-win').classList.add('hidden');
+}
+
+function renderProfile() {
+    const grid = document.getElementById('profile-inventory-grid');
+    document.getElementById('profile-inv-count').innerText = state.inventory.length;
+    grid.innerHTML = state.inventory.map((item, idx) => `
+        <div class="bg-zinc-900 border border-white/5 p-4 rounded-3xl text-center relative group">
+            <div class="text-[10px] font-black uppercase" style="color: ${RARITIES[item.rarity].color}">${RARITIES[item.rarity].name}</div>
+            <div class="text-xs font-bold my-4 line-clamp-2">${item.name}</div>
+            <button onclick="sellItem(${idx})" class="w-full py-2 bg-zinc-800 rounded-xl text-[10px] font-black uppercase hover:bg-red-600 transition-all">$${item.price} • Sell</button>
+        </div>
+    `).join('');
+}
+
+window.sellItem = function(idx) {
+    state.balance += state.inventory[idx].price;
+    state.inventory.splice(idx, 1);
+    saveToDB();
+    renderProfile();
+};
+
+window.onload = () => showSection('home');
