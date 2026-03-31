@@ -16,8 +16,31 @@ const db = getDatabase(app);
 
 // Резервный список, если API не ответит
 let allSkins = [
-    {name: "Dragon Lore", image: "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/images/econ/default_generated/weapon_awp_cu_awp_asimov_light_large.png", color: "#eb4b4b"},
-    {name: "Howl", image: "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/images/econ/default_generated/weapon_m4a1_cu_m4a1_howling_light_large.png", color: "#eb4b4b"}
+    {
+        name: "AWP | Dragon Lore", 
+        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1f_BYi59_8yJmY60mvLwOq7c2G1XvJBy2L-S8ImmigLsr0ZkYm71LdSSdgU_ZAnR-1O7wue905-5vJ_AnGwj5HfVp_iXGg/256fx256f", 
+        color: "#eb4b4b"
+    },
+    {
+        name: "M4A4 | Howl", 
+        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopL-zJAt21uH3cih9_92hkY6OlvL4NrXMm1Rd6dd2j6fG8In33gSyr0pvam_7d9XDIQY9YVvS_VDrw-u50MK-uJ_Bznpgu3Zz7H_cnBW0hAYMMLLY6_9s_A/256fx256f", 
+        color: "#eb4b4b"
+    },
+    {
+        name: "AK-47 | Fire Serpent", 
+        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrY6m21Xh-0Rka27yIdXGclA3ZAnV-wK4x7q50MK96J_AnXU363Iq7S7YnBW0hAYMMLLasf_8_A/256fx256f", 
+        color: "#eb4b4b"
+    },
+    {
+        name: "★ Karambit | Doppler", 
+        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJlY20kPb5PrrukmRB-Ml0mP7V-Inng2f_qxU9OTWhIYPBdwA6aV3S-1C3yOfm1pS06Z_AnXU363V37X_cnBW0hAYMMLL0GFrWjA/256fx256f", 
+        color: "#eb4b4b"
+    },
+    {
+        name: "AK-47 | Vulcan", 
+        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJegJB99KjkZKKm_LwDLbUkmne5bp9i_vG8In9u1as_UM9YGrwLdKRIQ5oNFzW8gS4lbzng8S-6ZzByXcx6XIk-z-DyOWS5i4z/256fx256f", 
+        color: "#d32ce6"
+    }
 ];
 
 let userBalance = 0;
