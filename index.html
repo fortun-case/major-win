@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Major Win - Cases</title>
+    <title>Major Win - CS2 Cases</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Кейс с сокровищами</h1>
+        <h1>Major Win: Case Simulator</h1>
         
+        <div id="balance" class="balance-board">Загрузка...</div>
+
         <div class="roulette-wrapper">
-            <div class="selector"></div> <div id="roulette" class="roulette-list"></div>
+            <div class="selector"></div>
+            <div id="roulette" class="roulette-list"></div>
         </div>
 
-        <button id="open-btn">Открыть кейс</button>
+        <button id="open-btn">Открыть за 100$</button>
 
         <div class="history-section">
-            <h3>Последние выигрыши:</h3>
+            <h3>Ваша история дропа:</h3>
             <div id="history" class="history-list"></div>
         </div>
     </div>
@@ -25,8 +28,3 @@
     <script type="module" src="app.js"></script>
 </body>
 </html>
-<div id="balance" style="font-size: 24px; color: #28a745; margin-bottom: 10px; font-weight: bold;">
-    Загрузка баланса...
-</div>
-
-<button id="open-btn">Открыть за 100$</button>
